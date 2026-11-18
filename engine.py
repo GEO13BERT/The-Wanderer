@@ -32,6 +32,113 @@ LEGENDARY_ITEMS = [
     "Thick gloves", "Rain poncho", "Thermal blanket", "Goggles", "Backpack",
 ]
 
+# The Safe Zone is 10 stages away, each stage is 40 progress
+SAFE_ZONE_DISTANCE = 400
+STAGE_SIZE = 40
+# Every 7 days a horde attacks your camp
+HORDE_EVERY = 7
+
+AMMO_ITEMS   = ["9mm bullets", "Shotgun shells", "Crossbow bolt"]
+WEAPON_ITEMS = [i for i in RARE_ITEMS if i not in AMMO_ITEMS] + ["RPG", "AK-47", "GLOCK 19", "UZI", "Military technology guns"]
+ARMOR_ITEMS  = ["Leather jacket", "Steel-toed boots", "Gas mask", "Kevlar vest", "Riot helmet", "Thick gloves"]
+
+PERK_INFO = {
+    "Scavenger":    "50% chance to find a second item when you scavenge",
+    "Medic":        "Rations heal 30 instead of 20, medical items heal double",
+    "Iron Mind":    "You lose half as much sanity",
+    "Sharpshooter": "Fights cost half the ammo and give 50% more XP",
+    "Stealthy":     "You face 30% fewer zombies in fights",
+    "Leader":       "Recruiting works more often, survivors fight twice as hard in the Horde",
+}
+
+def item_rarity(item):
+    """Used by the backpack to color each item."""
+    if item in UNCOMMON_ITEMS:
+        return "uncommon"
+    if item in COMMON_ITEMS or item == "Med kit":
+        return "common"
+    if item in RARE_ITEMS or item in WEAPON_ITEMS:
+        return "rare"
+    if item in EPIC_ITEMS:
+        return "epic"
+    if item in LEGENDARY_ITEMS:
+        return "legendary"
+    return "special"
+
+def is_usable(item):
+    return item in UNCOMMON_ITEMS or item in COMMON_ITEMS or item in AMMO_ITEMS or item == "Med kit"
+
+def use_item(state, item):
+    """Food items give food, medical items heal, ammo items give ammo. Does not cost a day."""
+    if item not in state['inventory']:
+        return state, "You don't have that item."
+
+    if item in UNCOMMON_ITEMS:
+        state['inventory'].remove(item)
+        state['food'] += 3
+        return state, f"You opened the {item}. (+3 Food)"
+    elif item in COMMON_ITEMS or item == "Med kit":
+        heal = 15
+        if item in ["First aid kit", "Med kit"]:
+            heal = 30
+        if "Medic" in state['perks']:
+            heal *= 2
+        state['inventory'].remove(item)
+        state['health'] = min(100, state['health'] + heal)
+        state['total_health_recoveries'] += 1
+        return state, f"You used the {item}. (+{heal} Health)"
+    elif item in AMMO_ITEMS:
+        state['inventory'].remove(item)
+        state['ammo'] += 10
+        return state, f"You loaded the {item}. (+10 Ammo)"
+
+    return state, f"You can't use the {item} right now."
+
+def lose_sanity(state, amount):
+    if "Iron Mind" in state.get('perks', []):
+        amount //= 2
+    state['sanity'] = max(0, state['sanity'] - amount)
+
+def damage_per_zombie(state):
+    """Weapons and armor in the backpack make every zombie hit softer. No ammo makes it worse."""
+    factor = 3
+    if any(item in WEAPON_ITEMS for item in state['inventory']):
+        factor -= 1
+    if any(item in ARMOR_ITEMS for item in state['inventory']):
+        factor -= 1
+    if state['ammo'] <= 0:
+        factor += 2
+    return max(1, factor)
+
+def end_of_day(state):
+    """Runs every time a day passes. Returns extra text for the message."""
+    state['day'] += 1
+    total_xp = (state['level'] - 1) * 100 + state['experience_points']
+    state['highest_xp'] = max(state['highest_xp'], total_xp)
+    extra = ""
+
+    if state['food'] <= 0:
+        state['health'] = max(0, state['health'] - 10)
+        extra += " You are starving! (-10 Health)"
+
+    if state['sanity'] <= 0:
+        probability = random.randint(1, 100)
+        if probability <= 30:
+            state['health'] = max(0, state['health'] - 10)
+            extra += " Your mind is breaking... you hurt yourself. (-10 Health)"
+
+    if state['morale'] <= 20 and state['survivors'] > 1:
+        probability = random.randint(1, 100)
+        if probability <= 25:
+            state['survivors'] -= 1
+            extra += " A survivor lost hope and deserted your group."
+
+    if state['day'] % HORDE_EVERY == 0 and state.get('active_event_id') is None and state['health'] > 0:
+        state['active_event_id'] = 16
+        extra += " HORDE NIGHT! A massive horde is coming for your camp. (1. Defend the camp | 2. Run)"
+
+    return extra
+
 def new_game():
     return {
         "health": 100,
@@ -64,31 +171,48 @@ def scavenge(state):
     pick = random.choices(categories, weights=weights, k=1)[0]
     item = random.choice(pick)
     state["inventory"].append(item)
-    state["progress"] += random.randint(3, 7)
-    state["day"] += 1
-    
     msg = f"You chose to scavenge... Fate gave you: {item}"
+
+    if "Scavenger" in state['perks']:
+        probability = random.randint(1, 100)
+        if probability <= 50:
+            bonus = random.choice(random.choices(categories, weights=weights, k=1)[0])
+            state["inventory"].append(bonus)
+            msg += f" and your Scavenger eye spotted: {bonus}"
+    msg += "."
+
+    state["progress"] += random.randint(3, 7)
+    msg += end_of_day(state)
     return state, msg
 
 def fight(state, ignore_low_health=False):
     if state["health"] <= 30 and not ignore_low_health:
         return state, "LOW_HEALTH_WARNING"
 
-    num_of_zombies = random.randint(1, 100)
-    factor = 1.5
-    state["health"] = max(0, state["health"] - factor * num_of_zombies)
+    # zombies get more dangerous as the days pass
+    num_of_zombies = random.randint(1, 8 + state["day"] // 3)
+    if "Stealthy" in state['perks']:
+        num_of_zombies = max(1, int(num_of_zombies * 0.7))
+    factor = damage_per_zombie(state)
+    damage = factor * num_of_zombies
+    state["health"] = max(0, state["health"] - damage)
 
     if state["health"] <= 0:
         state["health"] = 0
         return state, f"You fought {num_of_zombies} zombies and died..."
 
-    state["ammo"] = max(0, state["ammo"] - 2 * num_of_zombies)
-    state["experience_points"] += 0.5 * num_of_zombies
+    ammo_used = num_of_zombies
+    xp = 3 * num_of_zombies
+    if "Sharpshooter" in state['perks']:
+        ammo_used = (num_of_zombies + 1) // 2
+        xp = int(xp * 1.5)
+    state["ammo"] = max(0, state["ammo"] - ammo_used)
+    state["experience_points"] += xp
     state["total_zombies_killed"] += num_of_zombies
     state["progress"] += random.randint(5, 15)
-    state["day"] += 1
-    
-    msg = f"YOU HAVE DEFEATED {num_of_zombies} ZOMBIES!"
+
+    msg = f"YOU HAVE DEFEATED {num_of_zombies} ZOMBIES! (-{damage} Health, -{ammo_used} Ammo, +{xp} XP)"
+    msg += end_of_day(state)
     return state, msg
 
 def rest(state, portion):
@@ -99,74 +223,97 @@ def rest(state, portion):
     if portion > state["food"]:
         return state, "You don't have that much food!"
 
+    heal_per_ration = 20
+    if "Medic" in state['perks']:
+        heal_per_ration = 30
+
     recovered = 0
     for f in range(portion):
         if state["health"] < 100:
             state["total_food_eaten"] += 1
             state["food"] -= 1
-            state["health"] = min(100, state["health"] + 20)
+            before = state["health"]
+            state["health"] = min(100, state["health"] + heal_per_ration)
             state["total_health_recoveries"] += 1
-            recovered += 20
+            recovered += state["health"] - before
         else:
             break
 
     state["progress"] += random.randint(1, 3)
 
-    state["day"] += 1
     msg = f"You rested and recovered {recovered} health. "
     if state['weather']=='Heatwave':
         state['food']=max(0, state['food']-2)
-        msg+="The weather was unbearable so you consumed extra food"
+        msg+="The weather was unbearable so you consumed extra food."
     elif state['weather']=='Fog':
-        state['sanity']-=10
-        msg="The fog scares you"
-    
+        lose_sanity(state, 10)
+        msg+="The fog scares you."
+    elif state['weather']=='Clear':
+        state['sanity'] = min(100, state['sanity'] + 5)
+        state['morale'] = min(100, state['morale'] + 5)
+        msg+="A quiet night. (+5 Sanity, +5 Morale)"
+
+    msg += end_of_day(state)
     return state, msg
 
 def recruit_team(state):
     if state['food'] < 2:
         return state, "You do not have enough food to recruit (need 2)."
-    
-    result = random.randint(0, 1)
-    if result == 0:
+
+    # respect makes strangers trust you, Leader makes it even easier
+    chance = 50 + state['respect']
+    if "Leader" in state['perks']:
+        chance += 25
+    chance = max(10, min(90, chance))
+
+    probability = random.randint(1, 100)
+    if probability > chance:
         state['food'] -= 2
-        state['health'] -= 10
+        state['health'] = max(0, state['health'] - 10)
         return state, "It was a trap... You lost 2 food and 10 health."
     else:
         state['food'] -= 2
         state['survivors'] += 1
         state['experience_points'] += 5
-        return state, "Success! You found a survivor. (+1 Survivor, -2 Food)"
+        state['morale'] = min(100, state['morale'] + 5)
+        return state, "Success! You found a survivor. (+1 Survivor, -2 Food, +5 Morale)"
 
 def check_game_over(state):
+    # running out of food no longer kills you instantly, you starve a little every day instead
     if state["health"] <= 0:
         return "lose"
-    if state["food"] <= 0:
-        return "lose"
-    if state["progress"] >= 10000:
+    if state["progress"] >= SAFE_ZONE_DISTANCE:
         return "win"
     return None
 
+def check_level_up(state):
+    """At 100 XP the player levels up and picks one of 2 perks. Only when no event is running."""
+    if state.get('experience_points', 0) < 100 or state.get('active_event_id') is not None:
+        return None
+
+    state['experience_points'] -= 100
+    state['level'] += 1
+    state['active_event_id'] = 999
+
+    all_perks = list(PERK_INFO)
+    available = [p for p in all_perks if p not in state.get('perks', [])]
+    if len(available) < 2:
+        state['offered_perks'] = available
+    else:
+        state['offered_perks'] = random.sample(available, 2)
+
+    if not state['offered_perks']:
+        state['active_event_id'] = None
+        return "LEVEL UP! You have unlocked all perks!"
+    elif len(state['offered_perks']) == 1:
+        return f"LEVEL UP! Choose perk: 1. {state['offered_perks'][0]}"
+    else:
+        return f"LEVEL UP! Choose perk: 1. {state['offered_perks'][0]} | 2. {state['offered_perks'][1]}"
+
 def generate_random_event(state):
-    if state.get('experience_points',0)>=100:
-        state['experience_points']-=100
-        state['level']+=1
-        state['active_event_id']=999
-
-        all_perks = ["Scavenger", "Medic", "Iron Mind", "Sharpshooter", "Stealthy", "Leader"]
-        available = [p for p in all_perks if p not in state.get('perks', [])]
-        if len(available) < 2:
-            state['offered_perks'] = available
-        else:
-            state['offered_perks'] = random.sample(available, 2)
-
-        if not state['offered_perks']:
-            state['active_event_id'] = None
-            return state, "LEVEL UP! You have unlocked all perks!"
-        elif len(state['offered_perks']) == 1:
-            return state, f"LEVEL UP! Choose perk: 1. {state['offered_perks'][0]}"
-        else:
-            return state, f"LEVEL UP! Choose perk: 1. {state['offered_perks'][0]} | 2. {state['offered_perks'][1]}"
+    level_msg = check_level_up(state)
+    if level_msg:
+        return state, level_msg
     result = random.randint(0, 15)
     state['active_event_id'] = result
     
@@ -209,7 +356,7 @@ def generate_random_event(state):
     elif result==10:
         return state,"You hear a baby crying in a ruined house. Will you approach? Y|N"
     elif result==11:
-       state['sanity']-=15
+       lose_sanity(state, 15)
        state['active_event_id']=None
        return state, "You found the slaughtered bodies of the traders. Your sanity decreased"
     elif result==12:
@@ -323,7 +470,7 @@ def resolve_event_choice(state, choice):
     elif event_id==10:
         choice=choice.upper()
         if choice=="Y":
-            state['sanity']-=20
+            lose_sanity(state, 20)
             msg="It was a trap! The house was full of dead bodies. Your sanity is going insane"
             
         else:
@@ -355,7 +502,7 @@ def resolve_event_choice(state, choice):
                 msg="You tried to amputate his arm but you did not have a med kit"
         else:
             state['survivors']-=1
-            state['sanity']-=10
+            lose_sanity(state, 10)
             state['respect']-=10
             msg="You decided to kill him..."
     elif event_id==15:
@@ -367,10 +514,10 @@ def resolve_event_choice(state, choice):
                 msg = "You set up camp, ate well, and rested until dawn."
             else:
                 state['health']-=10
-                state['sanity']-=15
+                lose_sanity(state, 15)
                 msg="You tried to camp but you did not have no food"
         elif choice==2:
-            state['sanity']-=15
+            lose_sanity(state, 15)
             probability=random.randint(1,100)
             if probability>60:
                 state['inventory'].append("Flashlight")
@@ -383,6 +530,34 @@ def resolve_event_choice(state, choice):
                 if state.get('survivors',0)>0:
                     state['survivors']=max(0, state['survivors']-2)
                     msg="Your survivors were surrounded by Zombies. Two of them got killed"
+    elif event_id==16:
+        if choice==1:
+            num_of_zombies = random.randint(8, 14) + state['day'] // 3
+            defenders = state['survivors']
+            if "Leader" in state['perks']:
+                defenders *= 2
+            # every defender stops 4 zombies, the rest reach you
+            remaining = max(0, num_of_zombies - 4 * defenders)
+            damage = damage_per_zombie(state) * remaining
+            state['health'] = max(0, state['health'] - damage)
+            state['ammo'] = max(0, state['ammo'] - num_of_zombies)
+            state['total_zombies_killed'] += num_of_zombies
+            if state['health'] <= 0:
+                msg = f"The horde of {num_of_zombies} zombies broke through. You died defending the camp..."
+            else:
+                state['experience_points'] += 4 * num_of_zombies
+                state['respect'] += 10
+                state['progress'] += 20
+                state['morale'] = min(100, state['morale'] + 15)
+                msg = f"You held the line against {num_of_zombies} zombies! (-{damage} Health, +{4 * num_of_zombies} XP, +20 Progress, +10 Respect)"
+        elif choice==2:
+            state['food'] = max(0, state['food'] - 5)
+            state['morale'] = max(0, state['morale'] - 15)
+            lose_sanity(state, 10)
+            msg = "You ran into the night and left supplies behind. (-5 Food, -15 Morale)"
+            if state['survivors'] > 1:
+                state['survivors'] -= 1
+                msg = "You ran into the night. One survivor didn't make it. (-1 Survivor, -5 Food, -15 Morale)"
     elif event_id==999:
         choice_idx=int(choice)-1
         if 0 <= choice_idx < len(state.get('offered_perks', [])):

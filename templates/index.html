@@ -250,12 +250,55 @@
   .go-btn { display: inline-block; padding: 9px 26px; background: transparent; border: 1px solid var(--border2); color: var(--grey); font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 3px; text-decoration: none; transition: background 0.1s, color 0.1s; }
   .go-btn:hover { background: var(--s3); color: var(--white); }
 
+  /* ═══════════════════════════════════════
+     NEW: meters, rarity, horde, perks, help
+  ═══════════════════════════════════════ */
+  .meter { height: 2px; background: var(--mute); margin-top: 5px; }
+  .meter div { height: 100%; background: var(--grey); transition: width 0.5s ease; }
+  .meter.w div { background: #b08838; }
+  .meter.d div { background: #a03418; }
+
+  .horde-count { font-size: 0.58rem; letter-spacing: 1px; color: var(--dim); margin-top: 4px; text-transform: uppercase; }
+  .horde-count.near { color: #a03418; animation: pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* red edges on the screen when you are about to die */
+  #bg-tint.danger { box-shadow: inset 0 0 140px rgba(140,20,0,0.55); animation: pulse 2.4s ease-in-out infinite; }
+
+  .ev-box.horde { border-color: #5c1800; background: #140604; }
+  .ev-box.horde .ev-h { color: #c04020; }
+  .ev-box.levelup { border-color: #6a5420; background: #120f06; }
+  .ev-box.levelup .ev-h { color: #e0b848; }
+
+  .perk-pick { display: flex; flex-direction: column; gap: 4px; flex: 1 1 180px; }
+  .perk-pick .cb { width: 100%; text-align: left; }
+  .perk-desc { font-size: 0.7rem; color: var(--grey); padding-left: 2px; }
+  .perk-row { display: flex; flex-direction: column; padding: 4px 9px; background: var(--s2); border-left: 2px solid #c09030; }
+  .perk-row .pn { font-size: 0.77rem; color: #e0b848; }
+  .perk-row .pd { font-size: 0.66rem; color: var(--dim); }
+
+  .inv-item { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .inv-item.r-uncommon  { border-left-color: #4e6630; }
+  .inv-item.r-common    { border-left-color: #7a3428; }
+  .inv-item.r-rare      { border-left-color: #34507a; color: #8aa0c0; }
+  .inv-item.r-epic      { border-left-color: #5a3e9a; color: #a090c8; }
+  .inv-item.r-legendary { border-left-color: #c09030; color: #e0b848; }
+  .use-btn { font-size: 0.58rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; text-decoration: none; color: var(--grey); border: 1px solid var(--border2); padding: 1px 7px; flex-shrink: 0; }
+  .use-btn:hover { background: var(--s3); color: var(--white); }
+
+  .help summary { cursor: pointer; list-style: none; }
+  .help summary::-webkit-details-marker { display: none; }
+  .help summary .ph-x::after { content: 'show'; }
+  .help[open] summary .ph-x::after { content: 'hide'; }
+  .help ul { padding-left: 16px; font-size: 0.75rem; color: var(--grey); display: flex; flex-direction: column; gap: 4px; }
+  .help b { color: var(--off); font-weight: 600; }
+
   </style>
 </head>
 <body data-last-action="{{ last_action }}">
 
 <div id="bg"></div>
-<div id="bg-tint"></div>
+<div id="bg-tint" {% if state.health <= 20 %}class="danger"{% endif %}></div>
 <div id="grain"></div>
 
 <div class="rust-bar"></div>
@@ -267,15 +310,15 @@
       <div class="eyebrow">Apocalypse Survival Log</div>
       <h1>The Wanderer</h1>
     </div>
-    <div class="header-right">Day {{ state.day }} &nbsp;/&nbsp; Stage {{ [((state.progress // 1000) + 1), 10] | min }} of 10</div>
+    <div class="header-right">Day {{ state.day }} &nbsp;/&nbsp; Stage {{ [((state.progress // STAGE_SIZE) + 1), 10] | min }} of 10</div>
   </header>
 
   {% if message %}
     {% set ml = message | lower %}
     <div class="msg-wrap">
-      {% if 'died' in ml or 'raid' in ml or 'attacked' in ml or 'trap' in ml or 'game over' in ml or 'spoil' in ml or 'mine' in ml or 'lose all hope' in ml or 'insane' in ml %}
+      {% if 'died' in ml or 'raid' in ml or 'attacked' in ml or 'trap' in ml or 'game over' in ml or 'spoil' in ml or 'mine' in ml or 'lose all hope' in ml or 'insane' in ml or 'horde' in ml or 'starving' in ml or 'breaking' in ml or 'deserted' in ml %}
         <div class="msg danger">{{ message }}</div>
-      {% elif 'stranger' in ml or 'building' in ml or 'event' in ml or 'screaming' in ml or 'stealing' in ml or 'military base' in ml or 'dog' in ml or 'baby crying' in ml %}
+      {% elif 'stranger' in ml or 'building' in ml or 'event' in ml or 'screaming' in ml or 'stealing' in ml or 'military base' in ml or 'dog' in ml or 'baby crying' in ml or 'level up' in ml %}
         <div class="msg event">{{ message }}</div>
       {% elif 'warn' in ml or 'low' in ml or 'surrend' in ml %}
         <div class="msg warn">{{ message }}</div>
@@ -289,28 +332,34 @@
   {% set food   = state.food %}
   {% set ammo   = state.ammo %}
   {% set pts    = state.progress %}
-  {% set level  = [((pts // 1000) + 1), 10] | min %}
-  {% set lv_pts = pts % 1000 %}
-  {% set pct    = (lv_pts / 1000 * 100) | int %}
+  {% set level  = [((pts // STAGE_SIZE) + 1), 10] | min %}
+  {% set lv_pts = pts % STAGE_SIZE %}
+  {% set pct    = ([pts, SAFE_ZONE_DISTANCE] | min / SAFE_ZONE_DISTANCE * 100) | int %}
+  {% set horde_in = HORDE_EVERY - (state.day % HORDE_EVERY) %}
 
   <div class="hud">
     <div class="hs">
         <span class="lbl">Day</span>
         <span class="val">{{ state.day }}<br><small style="font-size:0.6rem;opacity:0.5;font-weight:normal;">({{ state.weather }})</small></span>
+        {% if state.active_event_id == 16 %}
+          <span class="horde-count near">Horde tonight!</span>
+        {% else %}
+          <span class="horde-count {% if horde_in <= 1 %}near{% endif %}">Horde in {{ horde_in }} {{ 'day' if horde_in == 1 else 'days' }}</span>
+        {% endif %}
     </div>
     <div class="hs"><span class="lbl">Level</span><span class="val">{{ state.level }}</span></div>
-    <div class="hs"><span class="lbl">Health</span><span class="val {% if health <= 20 %}d{% elif health <= 50 %}w{% endif %}">{{ health }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
+    <div class="hs"><span class="lbl">Health</span><span class="val {% if health <= 20 %}d{% elif health <= 50 %}w{% endif %}">{{ health }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span><div class="meter {% if health <= 20 %}d{% elif health <= 50 %}w{% endif %}"><div style="width:{{ health }}%"></div></div></div>
     <div class="hs"><span class="lbl">Food</span><span class="val {% if food <= 5 %}d{% elif food <= 15 %}w{% endif %}">{{ food }}</span></div>
     <div class="hs"><span class="lbl">Ammo</span><span class="val {% if ammo <= 5 %}d{% elif ammo <= 10 %}w{% endif %}">{{ ammo }}</span></div>
-    <div class="hs"><span class="lbl">XP</span><span class="val">{{ state.experience_points | int }}</span></div>
+    <div class="hs"><span class="lbl">XP</span><span class="val">{{ state.experience_points | int }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span><div class="meter"><div style="width:{{ [state.experience_points | int, 100] | min }}%"></div></div></div>
     <div class="hs"><span class="lbl">Survivors</span><span class="val">{{ state.survivors }}</span></div>
-    <div class="hs"><span class="lbl">Morale</span><span class="val {% if state.morale <= 20 %}d{% elif state.morale <= 50 %}w{% endif %}">{{ state.morale }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
-    <div class="hs"><span class="lbl">Sanity</span><span class="val {% if state.sanity <= 20 %}d{% elif state.sanity <= 50 %}w{% endif %}">{{ state.sanity }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
+    <div class="hs"><span class="lbl">Morale</span><span class="val {% if state.morale <= 20 %}d{% elif state.morale <= 50 %}w{% endif %}">{{ state.morale }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span><div class="meter {% if state.morale <= 20 %}d{% elif state.morale <= 50 %}w{% endif %}"><div style="width:{{ [[state.morale, 0] | max, 100] | min }}%"></div></div></div>
+    <div class="hs"><span class="lbl">Sanity</span><span class="val {% if state.sanity <= 20 %}d{% elif state.sanity <= 50 %}w{% endif %}">{{ state.sanity }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span><div class="meter {% if state.sanity <= 20 %}d{% elif state.sanity <= 50 %}w{% endif %}"><div style="width:{{ [[state.sanity, 0] | max, 100] | min }}%"></div></div></div>
     <div class="hs"><span class="lbl">Respect</span><span class="val">{{ state.respect }}</span></div>
     <div class="hud-prog">
       <div class="prog-meta">
         <span class="prog-lbl">Progress to Safe Zone</span>
-        <span class="prog-r">Stage {{ level }} / 10 &mdash; {{ lv_pts }} / 1000 ({{ pts }} total)</span>
+        <span class="prog-r">Stage {{ level }} / 10 &mdash; {{ lv_pts }} / {{ STAGE_SIZE }} ({{ pts }} / {{ SAFE_ZONE_DISTANCE }} total)</span>
       </div>
       <div class="prog-track"><div class="prog-fill" style="width:{{ pct }}%"></div></div>
     </div>
@@ -358,9 +407,9 @@
         <div class="pb">
 
           {% if state.active_event_id is not none %}
-            <div class="ev-box">
-              <div class="ev-h">Event In Progress</div>
-              <div class="ev-m">{{ message }}</div>
+            <div class="ev-box {% if state.active_event_id == 16 %}horde{% elif state.active_event_id == 999 %}levelup{% endif %}">
+              <div class="ev-h">{% if state.active_event_id == 16 %}Horde Night{% elif state.active_event_id == 999 %}Level Up &mdash; Choose a Perk{% else %}Event In Progress{% endif %}</div>
+              <div class="ev-m">{{ state.event_text or message }}</div>
               <div class="cr">
                 {% if state.active_event_id == 0 %}
                   <a href="/event_choice/1" class="cb red"  data-bg="fight"   data-snd="fight">Fight Back</a>
@@ -395,11 +444,15 @@
                 {% elif state.active_event_id == 15 %}
                   <a href="/event_choice/1" class="cb"      data-bg="rest"    data-snd="rest">Secure Camp</a>
                   <a href="/event_choice/2" class="cb red"  data-bg="mystery" data-snd="mystery">Keep Scavenging</a>
+                {% elif state.active_event_id == 16 %}
+                  <a href="/event_choice/1" class="cb red"  data-bg="fight"   data-snd="fight">Defend the Camp ({{ state.survivors }} {{ 'defender' if state.survivors == 1 else 'defenders' }})</a>
+                  <a href="/event_choice/2" class="cb"      data-bg="mystery" data-snd="mystery">Run (lose supplies)</a>
                 {% elif state.active_event_id == 999 %}
                   {% if state.offered_perks %}
                     {% for perk in state.offered_perks %}
-                      <form action="/event_choice/{{ loop.index }}" method="get" style="display:inline;">
+                      <form action="/event_choice/{{ loop.index }}" method="get" class="perk-pick">
                         <button type="submit" class="cb grn" data-bg="default" data-snd="loot">Pick: {{ perk }}</button>
+                        <span class="perk-desc">{{ PERK_INFO[perk] }}</span>
                       </form>
                     {% endfor %}
                   {% endif %}
@@ -473,6 +526,22 @@
     <!-- Άνοιγμα δεξιάς στήλης (rc) -->
     <div class="rc">
       
+      <!-- How to play -->
+      <details class="panel help" {% if state.day <= 2 %}open{% endif %}>
+        <summary class="ph"><span class="ph-t">How to Play</span><span class="ph-x"></span></summary>
+        <div class="pb">
+          <ul>
+            <li>Reach the <b>Safe Zone</b>: {{ SAFE_ZONE_DISTANCE }} progress, 10 stages.</li>
+            <li><b>Scavenge</b> for items, <b>Fight</b> for XP and big progress, <b>Rest</b> to heal.</li>
+            <li>Click <b>Use</b> in the backpack: food gives rations, medicine heals, bullets give ammo.</li>
+            <li>Weapons and armor in your backpack make zombies hit softer.</li>
+            <li>Every <b>{{ HORDE_EVERY }} days</b> a horde attacks. More survivors = better defense.</li>
+            <li>At <b>100 XP</b> you level up and pick a perk.</li>
+            <li>No food = you starve. Low morale = survivors desert you.</li>
+          </ul>
+        </div>
+      </details>
+
       <!-- Νέο Panel για τα Perks -->
       <div class="panel">
         <div class="ph"><span class="ph-t">Perks</span><span class="ph-x">{{ state.perks | length }} active</span></div>
@@ -480,7 +549,7 @@
           <div class="inv-scroll">
             {% if state.perks %}
               {% for perk in state.perks %}
-                <div class="inv-item" style="color: #e0b848; border-left-color: #c09030;">✦ {{ perk }}</div>
+                <div class="perk-row"><span class="pn">✦ {{ perk }}</span><span class="pd">{{ PERK_INFO.get(perk, '') }}</span></div>
               {% endfor %}
             {% else %}
               <span class="inv-empty">No perks unlocked. Reach 100 XP.</span>
@@ -494,7 +563,12 @@
         <div class="pb">
           <div class="inv-scroll">
             {% if state.inventory %}
-              {% for item in state.inventory | reverse %}<div class="inv-item">{{ item }}</div>{% endfor %}
+              {% for item in state.inventory | reverse %}
+                <div class="inv-item r-{{ item_rarity(item) }}">
+                  <span>{{ item }}</span>
+                  {% if is_usable(item) %}<a href="{{ url_for('route_use_item', item=item) }}" class="use-btn" data-snd="loot">Use</a>{% endif %}
+                </div>
+              {% endfor %}
             {% else %}
               <span class="inv-empty">Nothing yet. Start scavenging.</span>
             {% endif %}
@@ -508,7 +582,8 @@
           <div class="sr"><span class="sk">Walkers Killed</span><span class="sv">{{ state.total_zombies_killed }}</span></div>
           <div class="sr"><span class="sk">Food Consumed</span> <span class="sv">{{ state.total_food_eaten }}</span></div>
           <div class="sr"><span class="sk">Times Healed</span>  <span class="sv">{{ state.total_health_recoveries }}</span></div>
-          <div class="sr"><span class="sk">Highest XP</span>   <span class="sv">{{ state.highest_xp | int }}</span></div>
+          <div class="sr"><span class="sk">Total XP</span>     <span class="sv">{{ ((state.level - 1) * 100 + state.experience_points) | int }}</span></div>
+          <div class="sr"><span class="sk">Damage / Walker</span><span class="sv">{{ damage_per_zombie(state) }}</span></div>
           <div class="sr"><span class="sk">Items Found</span>  <span class="sv">{{ state.inventory | length }}</span></div>
         </div>
       </div>
@@ -530,7 +605,8 @@
         <div class="sr"><span class="sk">Stage Reached</span>  <span class="sv">{{ level }} / 10</span></div>
         <div class="sr"><span class="sk">Walkers Killed</span> <span class="sv">{{ state.total_zombies_killed }}</span></div>
         <div class="sr"><span class="sk">Items Found</span>    <span class="sv">{{ state.inventory | length }}</span></div>
-        <div class="sr"><span class="sk">XP Earned</span>      <span class="sv">{{ state.experience_points | int }}</span></div>
+        <div class="sr"><span class="sk">Level Reached</span>  <span class="sv">{{ state.level }}</span></div>
+        <div class="sr"><span class="sk">Perks</span>          <span class="sv">{{ state.perks | join(', ') or 'None' }}</span></div>
       </div>
       <a href="/new_game" class="go-btn">Start Over</a>
     </div>
