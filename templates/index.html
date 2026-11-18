@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Wanderer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+
+  :root {
+    --bg:      #0e0d0b;
+    --s1:      #161412;
+    --s2:      #1d1b18;
+    --s3:      #242118;
+    --border:  #2c2924;
+    --border2: #38342c;
+    --white:   #e6e0d4;
+    --off:     #bfb9ae;
+    --grey:    #867f74;
+    --dim:     #524e47;
+    --mute:    #3a3630;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--off);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  #bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    transition: opacity 0.4s ease;
+    opacity: 1;
+  }
+
+  #bg-tint {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: rgba(10,9,7,0.78);
+  }
+
+  #grain {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+  }
+
+  /* ═══════════════════════════════════════
+     SVG BACKGROUND SCENES
+  ═══════════════════════════════════════ */
+
+  /* DEFAULT: post-apocalyptic road at dusk */
+  .bg-default {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23050302'/%3E%3Cstop offset='0.5' stop-color='%23381a04'/%3E%3Cstop offset='1' stop-color='%23200e02'/%3E%3C/linearGradient%3E%3ClinearGradient id='grd' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23140c02'/%3E%3Cstop offset='1' stop-color='%230a0601'/%3E%3C/linearGradient%3E%3CradialGradient id='moon' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0' stop-color='%23f0d870'/%3E%3Cstop offset='0.6' stop-color='%23c8a840'/%3E%3Cstop offset='1' stop-color='%23906018' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23sky)'/%3E%3Crect y='360' width='1200' height='240' fill='url(%23grd)'/%3E%3Ccircle cx='880' cy='78' r='55' fill='%23c09030' opacity='0.25'/%3E%3Ccircle cx='880' cy='78' r='40' fill='%23e0b848' opacity='0.55'/%3E%3Ccircle cx='880' cy='78' r='28' fill='%23f8d868' opacity='0.75'/%3E%3Ccircle cx='880' cy='78' r='18' fill='%23fff8c0' opacity='0.6'/%3E%3Cline x1='880' y1='28' x2='880' y2='8'  stroke='%23e0c060' stroke-width='1.5' opacity='0.3'/%3E%3Cline x1='930' y1='58' x2='950' y2='48' stroke='%23e0c060' stroke-width='1.5' opacity='0.3'/%3E%3Cline x1='830' y1='58' x2='810' y2='48' stroke='%23e0c060' stroke-width='1.5' opacity='0.3'/%3E%3Ccircle cx='120' cy='55'  r='2' fill='%23e0d0a0' opacity='0.7'/%3E%3Ccircle cx='240' cy='30'  r='1.5' fill='%23e0d0a0' opacity='0.6'/%3E%3Ccircle cx='400' cy='20'  r='2' fill='%23e0d0a0' opacity='0.5'/%3E%3Ccircle cx='550' cy='45'  r='1.5' fill='%23e0d0a0' opacity='0.6'/%3E%3Ccircle cx='700' cy='15'  r='2' fill='%23e0d0a0' opacity='0.7'/%3E%3Ccircle cx='1050' cy='40' r='1.5' fill='%23e0d0a0' opacity='0.5'/%3E%3Ccircle cx='1150' cy='22' r='2' fill='%23e0d0a0' opacity='0.6'/%3E%3Crect x='0'   y='210' width='140' height='150' fill='%23261404' opacity='0.9'/%3E%3Crect x='20'  y='170' width='70'  height='80'  fill='%23221202' opacity='0.9'/%3E%3Crect x='35'  y='220' width='14'  height='22'  fill='%23582800' opacity='0.5'/%3E%3Crect x='58'  y='220' width='14'  height='22'  fill='%23582800' opacity='0.5'/%3E%3Crect x='80'  y='222' width='14'  height='20'  fill='%23200a00' opacity='0.4'/%3E%3Crect x='5'   y='190' width='8'   height='130' fill='%231a0c02'/%3E%3Crect x='130' y='175' width='10'  height='5'   fill='%23481e02'/%3E%3Crect x='140' y='240' width='100' height='120' fill='%231e1002' opacity='0.9'/%3E%3Crect x='155' y='260' width='12'  height='18'  fill='%23482000' opacity='0.5'/%3E%3Crect x='178' y='260' width='12'  height='18'  fill='%23482000' opacity='0.5'/%3E%3Crect x='200' y='245' width='8'   height='5'   fill='%23381800'/%3E%3Crect x='240' y='250' width='80'  height='110' fill='%231a0e02' opacity='0.9'/%3E%3Crect x='258' y='268' width='11'  height='16'  fill='%23381400' opacity='0.5'/%3E%3Crect x='980' y='200' width='130' height='160' fill='%23261404' opacity='0.9'/%3E%3Crect x='995' y='162' width='65'  height='70'  fill='%23221202' opacity='0.9'/%3E%3Crect x='1005' y='210' width='13' height='20'  fill='%23582800' opacity='0.5'/%3E%3Crect x='1028' y='210' width='13' height='20'  fill='%23582800' opacity='0.5'/%3E%3Crect x='1110' y='230' width='90'  height='130' fill='%231e1002' opacity='0.9'/%3E%3Crect x='1120' y='248' width='12'  height='18'  fill='%23482000' opacity='0.5'/%3E%3Crect x='1160' y='248' width='12'  height='18'  fill='%23482000' opacity='0.4'/%3E%3Cpolygon points='520,360 680,360 740,600 460,600' fill='%23281808' opacity='0.95'/%3E%3Crect x='595' y='375' width='10' height='42' fill='%23402008' rx='2' opacity='0.7'/%3E%3Crect x='595' y='438' width='10' height='42' fill='%23402008' rx='2' opacity='0.7'/%3E%3Crect x='595' y='500' width='10' height='42' fill='%23402008' rx='2' opacity='0.7'/%3E%3Cellipse cx='596' cy='595' rx='22' ry='6' fill='%23000' opacity='0.5'/%3E%3Crect x='589' y='532' width='14' height='60' fill='%23100806' rx='3'/%3E%3Ccircle cx='596' cy='524' r='12' fill='%23100806'/%3E%3Cline x1='589' y1='552' x2='573' y2='574' stroke='%23100806' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='603' y1='552' x2='614' y2='570' stroke='%23100806' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='589' y1='580' x2='580' y2='600' stroke='%23100806' stroke-width='4' stroke-linecap='round'/%3E%3Cline x1='603' y1='580' x2='610' y2='600' stroke='%23100806' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='195' cy='367' r='6'  fill='%230e0a06'/%3E%3Crect x='191' y='367' width='7' height='16' fill='%230e0a06'/%3E%3Ccircle cx='220' cy='365' r='5'  fill='%230e0a06'/%3E%3Crect x='216' y='365' width='7' height='15' fill='%230e0a06'/%3E%3Ccircle cx='245' cy='368' r='6'  fill='%230e0a06'/%3E%3Crect x='241' y='368' width='8' height='16' fill='%230e0a06'/%3E%3Ccircle cx='268' cy='365' r='5'  fill='%230e0a06'/%3E%3Crect x='264' y='365' width='7' height='15' fill='%230e0a06'/%3E%3Ccircle cx='290' cy='367' r='6'  fill='%230e0a06'/%3E%3Crect x='286' y='367' width='8' height='16' fill='%230e0a06'/%3E%3Cellipse cx='240' cy='374' rx='70' ry='8' fill='%230a0806' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* SCAVENGE: detailed ruined building interior */
+  .bg-scavenge {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='intbg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23140e06'/%3E%3Cstop offset='1' stop-color='%230a0802'/%3E%3C/linearGradient%3E%3CradialGradient id='shaft' cx='50%25' cy='0%25' r='70%25'%3E%3Cstop offset='0' stop-color='%23c88020' stop-opacity='0.18'/%3E%3Cstop offset='1' stop-color='%23c88020' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23intbg)'/%3E%3Crect width='1200' height='600' fill='url(%23shaft)'/%3E%3Crect x='0'    y='0' width='200' height='600' fill='%23160e04' opacity='0.95'/%3E%3Crect x='1000' y='0' width='200' height='600' fill='%23160e04' opacity='0.95'/%3E%3Crect x='200'  y='0' width='800' height='130' fill='%23120a04' opacity='0.95'/%3E%3Cellipse cx='600' cy='130' rx='160' ry='60' fill='%231e1206' opacity='0.7'/%3E%3Cpolygon points='480,80 720,80 790,600 410,600' fill='%23e09020' opacity='0.045'/%3E%3Crect x='200' y='530' width='800' height='70' fill='%23110904'/%3E%3Crect x='200' y='520' width='800' height='14' fill='%23191004' opacity='0.8'/%3E%3Cellipse cx='350' cy='530' rx='90'  ry='22' fill='%231c1206'/%3E%3Cellipse cx='850' cy='533' rx='80'  ry='18' fill='%231a1004'/%3E%3Cellipse cx='600' cy='535' rx='60'  ry='14' fill='%23161004'/%3E%3Crect x='215' y='300' width='175' height='10' fill='%232a1a06' rx='3'/%3E%3Crect x='215' y='365' width='155' height='10' fill='%232a1a06' rx='3'/%3E%3Crect x='215' y='430' width='175' height='10' fill='%232a1a06' rx='3'/%3E%3Crect x='215' y='300' width='10' height='140' fill='%232a1a06'/%3E%3Crect x='382' y='300' width='10' height='140' fill='%232a1a06'/%3E%3Crect x='215' y='300' width='10' height='8' fill='%23402a08' rx='2'/%3E%3Crect x='265' y='445' width='45' height='38' fill='%23281a06' rx='3'/%3E%3Crect x='318' y='458' width='35' height='32' fill='%23221606' rx='3'/%3E%3Crect x='340' y='450' width='28' height='40' fill='%231e1404' rx='3'/%3E%3Crect x='224' y='378' width='30' height='30' fill='%23241804' rx='2'/%3E%3Crect x='260' y='382' width='22' height='28' fill='%231e1404' rx='2'/%3E%3Crect x='810' y='298' width='175' height='10' fill='%232a1a06' rx='3'/%3E%3Crect x='810' y='363' width='155' height='10' fill='%232a1a06' rx='3'/%3E%3Crect x='810' y='298' width='10' height='80' fill='%232a1a06'/%3E%3Crect x='977' y='298' width='10' height='80' fill='%232a1a06'/%3E%3Crect x='840' y='430' width='40' height='34' fill='%23281a06' rx='3'/%3E%3Crect x='888' y='442' width='32' height='28' fill='%23221606' rx='3'/%3E%3Crect x='855' y='200' width='110' height='160' fill='%231e1408' opacity='0.3'/%3E%3Crect x='855' y='200' width='110' height='160' fill='none' stroke='%23381e08' stroke-width='9'/%3E%3Cline x1='910' y1='200' x2='910' y2='360' stroke='%23381e08' stroke-width='6'/%3E%3Cline x1='855' y1='280' x2='965' y2='280' stroke='%23381e08' stroke-width='6'/%3E%3Cline x1='855' y1='200' x2='875' y2='220' stroke='%23201208' stroke-width='3'/%3E%3Cline x1='965' y1='200' x2='945' y2='230' stroke='%23201208' stroke-width='3'/%3E%3Cpolygon points='855,200 965,200 1010,600 780,600' fill='%23e09828' opacity='0.04'/%3E%3Crect x='310' y='150' width='70'  height='100' fill='%231a1004' opacity='0.4'/%3E%3Crect x='310' y='150' width='70'  height='100' fill='none' stroke='%23301806' stroke-width='7'/%3E%3Cline x1='345' y1='150' x2='345' y2='250' stroke='%23301806' stroke-width='5'/%3E%3Ccircle cx='480' cy='462' r='16' fill='%230c0804'/%3E%3Crect x='466' y='472' width='28' height='34' fill='%230c0804' rx='4'/%3E%3Cline x1='466' y1='484' x2='443' y2='506' stroke='%230c0804' stroke-width='6' stroke-linecap='round'/%3E%3Cline x1='494' y1='484' x2='517' y2='504' stroke='%230c0804' stroke-width='6' stroke-linecap='round'/%3E%3Crect x='456' y='480' width='38' height='20' fill='%230e0a04' rx='3'/%3E%3Ccircle cx='540' cy='465' r='8'  fill='%23180e04' opacity='0.6'/%3E%3Ccircle cx='560' cy='472' r='6'  fill='%23180e04' opacity='0.5'/%3E%3Ccircle cx='580' cy='460' r='9'  fill='%23180e04' opacity='0.6'/%3E%3C/svg%3E");
+  }
+
+  /* FIGHT: blood moon zombie horde */
+  .bg-fight {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='bloodsky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23280606'/%3E%3Cstop offset='0.6' stop-color='%23481008'/%3E%3Cstop offset='1' stop-color='%23380808'/%3E%3C/linearGradient%3E%3CradialGradient id='bmoon' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0' stop-color='%23ff2020' stop-opacity='0.5'/%3E%3Cstop offset='0.5' stop-color='%23a01010' stop-opacity='0.6'/%3E%3Cstop offset='1' stop-color='%23600808' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23bloodsky)'/%3E%3Crect y='350' width='1200' height='250' fill='%23160404'/%3E%3Ccircle cx='600' cy='88' r='70' fill='%23601008' opacity='0.5'/%3E%3Ccircle cx='600' cy='88' r='58' fill='%23901818' opacity='0.6'/%3E%3Ccircle cx='600' cy='88' r='44' fill='%23c02020' opacity='0.55'/%3E%3Ccircle cx='600' cy='88' r='30' fill='%23e03030' opacity='0.5'/%3E%3Crect x='100'  y='210' width='120' height='140' fill='%23200606' opacity='0.9'/%3E%3Crect x='120'  y='175' width='55'  height='65'  fill='%231c0504' opacity='0.9'/%3E%3Crect x='135'  y='218' width='13'  height='18'  fill='%23600808' opacity='0.5'/%3E%3Crect x='158'  y='218' width='13'  height='18'  fill='%23600808' opacity='0.4'/%3E%3Crect x='220'  y='235' width='100' height='115' fill='%231c0504' opacity='0.9'/%3E%3Crect x='238'  y='250' width='12'  height='16'  fill='%23580808' opacity='0.5'/%3E%3Crect x='260'  y='250' width='12'  height='16'  fill='%23580808' opacity='0.4'/%3E%3Crect x='340'  y='220' width='90'  height='130' fill='%23200606' opacity='0.9'/%3E%3Crect x='358'  y='238' width='11'  height='16'  fill='%23600808' opacity='0.5'/%3E%3Crect x='980'  y='215' width='115' height='135' fill='%23200606' opacity='0.9'/%3E%3Crect x='998'  y='175' width='55'  height='65'  fill='%231c0504' opacity='0.9'/%3E%3Crect x='1010' y='222' width='13'  height='18'  fill='%23600808' opacity='0.5'/%3E%3Crect x='1033' y='222' width='13'  height='18'  fill='%23600808' opacity='0.4'/%3E%3Crect x='1095' y='230' width='105' height='120' fill='%231c0504' opacity='0.9'/%3E%3Crect x='1113' y='248' width='12'  height='16'  fill='%23580808' opacity='0.5'/%3E%3Ccircle cx='80'   cy='333' r='7' fill='%23280606'/%3E%3Crect x='74' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='120'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='114' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='160'  cy='333' r='6' fill='%23280606'/%3E%3Crect x='155' y='333' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='200'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='194' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='240'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='234' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='280'  cy='330' r='6' fill='%23280606'/%3E%3Crect x='275' y='330' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='320'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='314' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='360'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='354' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='400'  cy='333' r='6' fill='%23280606'/%3E%3Crect x='395' y='333' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='440'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='434' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='480'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='474' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='520'  cy='330' r='6' fill='%23280606'/%3E%3Crect x='515' y='330' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='560'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='554' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='600'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='594' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='640'  cy='333' r='6' fill='%23280606'/%3E%3Crect x='635' y='333' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='680'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='674' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='720'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='714' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='760'  cy='330' r='6' fill='%23280606'/%3E%3Crect x='755' y='330' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='800'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='794' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='840'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='834' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='880'  cy='333' r='6' fill='%23280606'/%3E%3Crect x='875' y='333' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='920'  cy='330' r='7' fill='%23280606'/%3E%3Crect x='914' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='960'  cy='333' r='7' fill='%23280606'/%3E%3Crect x='954' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='1000' cy='330' r='6' fill='%23280606'/%3E%3Crect x='995' y='330' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='1040' cy='333' r='7' fill='%23280606'/%3E%3Crect x='1034' y='333' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='1080' cy='330' r='7' fill='%23280606'/%3E%3Crect x='1074' y='330' width='12' height='22' fill='%23280606'/%3E%3Ccircle cx='1120' cy='333' r='6' fill='%23280606'/%3E%3Crect x='1115' y='333' width='11' height='20' fill='%23280606'/%3E%3Ccircle cx='100'  cy='350' r='11' fill='%231e0404'/%3E%3Crect x='92'  y='350' width='17' height='38' fill='%231e0404'/%3E%3Cline x1='92'  y1='362' x2='74'  y2='378' stroke='%231e0404' stroke-width='5'/%3E%3Cline x1='109' y1='362' x2='127' y2='376' stroke='%231e0404' stroke-width='5'/%3E%3Ccircle cx='200'  cy='347' r='12' fill='%231e0404'/%3E%3Crect x='191' y='347' width='19' height='42' fill='%231e0404'/%3E%3Cline x1='191' y1='360' x2='170' y2='378' stroke='%231e0404' stroke-width='6'/%3E%3Ccircle cx='310'  cy='350' r='11' fill='%231e0404'/%3E%3Crect x='302' y='350' width='17' height='38' fill='%231e0404'/%3E%3Ccircle cx='420'  cy='347' r='12' fill='%231e0404'/%3E%3Crect x='411' y='347' width='19' height='42' fill='%231e0404'/%3E%3Cline x1='430' y1='360' x2='450' y2='378' stroke='%231e0404' stroke-width='6'/%3E%3Ccircle cx='540'  cy='350' r='11' fill='%231e0404'/%3E%3Crect x='532' y='350' width='17' height='38' fill='%231e0404'/%3E%3Ccircle cx='660'  cy='347' r='12' fill='%231e0404'/%3E%3Crect x='651' y='347' width='19' height='42' fill='%231e0404'/%3E%3Cline x1='651' y1='360' x2='630' y2='378' stroke='%231e0404' stroke-width='6'/%3E%3Ccircle cx='780'  cy='350' r='11' fill='%231e0404'/%3E%3Crect x='772' y='350' width='17' height='38' fill='%231e0404'/%3E%3Ccircle cx='900'  cy='347' r='12' fill='%231e0404'/%3E%3Crect x='891' y='347' width='19' height='42' fill='%231e0404'/%3E%3Cline x1='910' y1='360' x2='930' y2='378' stroke='%231e0404' stroke-width='6'/%3E%3Ccircle cx='1020' cy='350' r='11' fill='%231e0404'/%3E%3Crect x='1012' y='350' width='17' height='38' fill='%231e0404'/%3E%3Ccircle cx='1140' cy='347' r='12' fill='%231e0404'/%3E%3Crect x='1131' y='347' width='19' height='42' fill='%231e0404'/%3E%3Ccircle cx='140'  cy='368' r='16' fill='%23140202'/%3E%3Crect x='127' y='368' width='25' height='55' fill='%23140202'/%3E%3Cline x1='127' y1='382' x2='98'  y2='396' stroke='%23140202' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='152' y1='380' x2='181' y2='392' stroke='%23140202' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='340'  cy='365' r='17' fill='%23140202'/%3E%3Crect x='326' y='365' width='27' height='58' fill='%23140202'/%3E%3Cline x1='326' y1='380' x2='295' y2='395' stroke='%23140202' stroke-width='8' stroke-linecap='round'/%3E%3Cline x1='353' y1='378' x2='384' y2='390' stroke='%23140202' stroke-width='8' stroke-linecap='round'/%3E%3Ccircle cx='540'  cy='368' r='16' fill='%23140202'/%3E%3Crect x='527' y='368' width='25' height='55' fill='%23140202'/%3E%3Cline x1='527' y1='382' x2='498' y2='398' stroke='%23140202' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='740'  cy='365' r='17' fill='%23140202'/%3E%3Crect x='726' y='365' width='27' height='58' fill='%23140202'/%3E%3Cline x1='753' y1='378' x2='782' y2='390' stroke='%23140202' stroke-width='8' stroke-linecap='round'/%3E%3Ccircle cx='940'  cy='368' r='16' fill='%23140202'/%3E%3Crect x='927' y='368' width='25' height='55' fill='%23140202'/%3E%3Cline x1='927' y1='382' x2='898' y2='396' stroke='%23140202' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='952' y1='380' x2='981' y2='392' stroke='%23140202' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='1120' cy='365' r='17' fill='%23140202'/%3E%3Crect x='1106' y='365' width='27' height='58' fill='%23140202'/%3E%3Cline x1='1106' y1='380' x2='1077' y2='395' stroke='%23140202' stroke-width='8' stroke-linecap='round'/%3E%3Cline x1='1133' y1='378' x2='1162' y2='390' stroke='%23140202' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* REST: campfire in dark forest */
+  .bg-rest {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='nightsky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2306080a'/%3E%3Cstop offset='1' stop-color='%230c0a06'/%3E%3C/linearGradient%3E%3CradialGradient id='fireglow' cx='50%25' cy='100%25' r='55%25'%3E%3Cstop offset='0' stop-color='%23e06010' stop-opacity='0.55'/%3E%3Cstop offset='0.5' stop-color='%23903008' stop-opacity='0.25'/%3E%3Cstop offset='1' stop-color='%230c0a06' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23nightsky)'/%3E%3Crect width='1200' height='600' fill='url(%23fireglow)'/%3E%3Ccircle cx='80'  cy='40' r='2'  fill='%23d0c090' opacity='0.7'/%3E%3Ccircle cx='200' cy='20' r='1.5' fill='%23d0c090' opacity='0.6'/%3E%3Ccircle cx='350' cy='50' r='2'  fill='%23d0c090' opacity='0.5'/%3E%3Ccircle cx='500' cy='15' r='1.5' fill='%23d0c090' opacity='0.7'/%3E%3Ccircle cx='700' cy='35' r='2'  fill='%23d0c090' opacity='0.6'/%3E%3Ccircle cx='900' cy='25' r='1.5' fill='%23d0c090' opacity='0.5'/%3E%3Ccircle cx='1050' cy='55' r='2' fill='%23d0c090' opacity='0.7'/%3E%3Ccircle cx='1180' cy='18' r='1.5' fill='%23d0c090' opacity='0.6'/%3E%3Crect x='0'   y='80'  width='50'  height='520' fill='%230c0a04'/%3E%3Cellipse cx='25'  cy='80'  rx='85'  ry='140' fill='%230c0a04'/%3E%3Cellipse cx='25'  cy='200' rx='65'  ry='110' fill='%230a0803'/%3E%3Crect x='55'  y='120' width='42'  height='480' fill='%230b0903'/%3E%3Cellipse cx='76'  cy='120' rx='72'  ry='120' fill='%230b0903'/%3E%3Cellipse cx='76'  cy='250' rx='55'  ry='95'  fill='%23090802'/%3E%3Crect x='105' y='95'  width='52'  height='505' fill='%230c0a04'/%3E%3Cellipse cx='131' cy='95'  rx='92'  ry='148' fill='%230c0a04'/%3E%3Cellipse cx='131' cy='230' rx='70'  ry='120' fill='%230a0803'/%3E%3Crect x='175' y='140' width='38'  height='460' fill='%230b0903'/%3E%3Cellipse cx='194' cy='140' rx='65'  ry='108' fill='%230b0903'/%3E%3Crect x='215' y='160' width='44'  height='440' fill='%230c0a04'/%3E%3Cellipse cx='237' cy='158' rx='78'  ry='128' fill='%230c0a04'/%3E%3Crect x='955'  y='105' width='50'  height='495' fill='%230c0a04'/%3E%3Cellipse cx='980'  cy='105' rx='88'  ry='140' fill='%230c0a04'/%3E%3Cellipse cx='980'  cy='240' rx='68'  ry='112' fill='%230a0803'/%3E%3Crect x='1010' y='80'  width='44'  height='520' fill='%230b0903'/%3E%3Cellipse cx='1032' cy='80'  rx='78'  ry='128' fill='%230b0903'/%3E%3Crect x='1058' y='120' width='52'  height='480' fill='%230c0a04'/%3E%3Cellipse cx='1084' cy='120' rx='92'  ry='148' fill='%230c0a04'/%3E%3Crect x='1118' y='145' width='46'  height='455' fill='%230b0903'/%3E%3Cellipse cx='1141' cy='142' rx='82'  ry='132' fill='%230b0903'/%3E%3Crect x='1160' y='165' width='40'  height='435' fill='%230c0a04'/%3E%3Cellipse cx='1180' cy='162' rx='72'  ry='118' fill='%230c0a04'/%3E%3Crect y='510' width='1200' height='90' fill='%230a0803'/%3E%3Cellipse cx='600' cy='548' rx='85'  ry='16' fill='%23201408'/%3E%3Crect x='532' y='536' width='135' height='16' fill='%23281808' rx='5' transform='rotate(-10,600,544)'/%3E%3Crect x='540' y='532' width='120' height='16' fill='%23221406' rx='5' transform='rotate(10,600,540)'/%3E%3Crect x='560' y='528' width='80'  height='14' fill='%231e1204' rx='4' transform='rotate(-5,600,535)'/%3E%3Cellipse cx='600' cy='528' rx='32' ry='10' fill='%23b03008' opacity='0.9'/%3E%3Cellipse cx='600' cy='495' rx='20' ry='42' fill='%23c03810' opacity='0.85'/%3E%3Cellipse cx='590' cy='498' rx='14' ry='34' fill='%23e05818' opacity='0.8'/%3E%3Cellipse cx='610' cy='500' rx='12' ry='32' fill='%23d84c14' opacity='0.8'/%3E%3Cellipse cx='600' cy='484' rx='11' ry='26' fill='%23f07828' opacity='0.75'/%3E%3Cellipse cx='596' cy='474' rx='7'  ry='17' fill='%23ffaa48' opacity='0.7'/%3E%3Cellipse cx='602' cy='465' rx='4'  ry='10' fill='%23ffe888' opacity='0.6'/%3E%3Ccircle cx='465' cy='510' r='20' fill='%230a0603'/%3E%3Crect x='451' y='524' width='28' height='26' fill='%230a0603' rx='3'/%3E%3Ccircle cx='535' cy='516' r='17' fill='%230a0603'/%3E%3Crect x='522' y='528' width='24' height='22' fill='%230a0603' rx='3'/%3E%3Ccircle cx='665' cy='516' r='17' fill='%230a0603'/%3E%3Crect x='652' y='528' width='24' height='22' fill='%230a0603' rx='3'/%3E%3Ccircle cx='738' cy='510' r='20' fill='%230a0603'/%3E%3Crect x='724' y='524' width='28' height='26' fill='%230a0603' rx='3'/%3E%3Ccircle cx='465' cy='510' r='20' fill='%230a0603'/%3E%3C/svg%3E");
+  }
+
+  /* RECRUIT: survivors behind perimeter fence */
+  .bg-recruit {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='dawn' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2314140a'/%3E%3Cstop offset='0.5' stop-color='%23281e08'/%3E%3Cstop offset='1' stop-color='%230e0e06'/%3E%3C/linearGradient%3E%3CradialGradient id='sunsrays' cx='50%25' cy='55%25' r='40%25'%3E%3Cstop offset='0' stop-color='%23806020' stop-opacity='0.3'/%3E%3Cstop offset='1' stop-color='%23806020' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23dawn)'/%3E%3Crect width='1200' height='600' fill='url(%23sunsrays)'/%3E%3Ccircle cx='600' cy='305' r='28' fill='%23906828' opacity='0.5'/%3E%3Ccircle cx='600' cy='305' r='18' fill='%23c09040' opacity='0.45'/%3E%3Ccircle cx='600' cy='305' r='10' fill='%23e0b050' opacity='0.4'/%3E%3Crect x='0'   y='295' width='1200' height='25' fill='%23221c08'/%3E%3Crect x='0'   y='305' width='1200' height='10' fill='%232a2208'/%3E%3Crect x='45'   y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='45'   y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='115'  y='205' width='20' height='120' fill='%23201c08'/%3E%3Crect x='115'  y='203' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='185'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='185'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='255'  y='207' width='20' height='118' fill='%23201c08'/%3E%3Crect x='255'  y='205' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='325'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='325'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='395'  y='205' width='20' height='120' fill='%23201c08'/%3E%3Crect x='395'  y='203' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='465'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='465'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='535'  y='207' width='20' height='118' fill='%23201c08'/%3E%3Crect x='535'  y='205' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='605'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='605'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='675'  y='205' width='20' height='120' fill='%23201c08'/%3E%3Crect x='675'  y='203' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='745'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='745'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='815'  y='207' width='20' height='118' fill='%23201c08'/%3E%3Crect x='815'  y='205' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='885'  y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='885'  y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='955'  y='205' width='20' height='120' fill='%23201c08'/%3E%3Crect x='955'  y='203' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='1025' y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='1025' y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='1095' y='207' width='20' height='118' fill='%23201c08'/%3E%3Crect x='1095' y='205' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Crect x='1155' y='210' width='20' height='115' fill='%23201c08'/%3E%3Crect x='1155' y='208' width='20' height='10'  fill='%23382c0a' rx='2'/%3E%3Cline x1='0' y1='232' x2='1200' y2='232' stroke='%23302808' stroke-width='4' stroke-dasharray='10,5'/%3E%3Cline x1='0' y1='258' x2='1200' y2='258' stroke='%23302808' stroke-width='4' stroke-dasharray='10,5'/%3E%3Cline x1='0' y1='282' x2='1200' y2='282' stroke='%23302808' stroke-width='3' stroke-dasharray='8,4'/%3E%3Crect y='320' width='1200' height='280' fill='%230c0c06'/%3E%3Ccircle cx='310'  cy='364' r='20' fill='%230e0e08'/%3E%3Crect x='294' y='382' width='32' height='58' fill='%230e0e08' rx='4'/%3E%3Cline x1='294' y1='400' x2='268' y2='424' stroke='%230e0e08' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='326' y1='400' x2='350' y2='422' stroke='%230e0e08' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='395'  cy='360' r='17' fill='%230e0e08'/%3E%3Crect x='380' y='376' width='29' height='54' fill='%230e0e08' rx='4'/%3E%3Cline x1='380' y1='392' x2='356' y2='414' stroke='%230e0e08' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='470'  cy='366' r='19' fill='%230e0e08'/%3E%3Crect x='454' y='384' width='30' height='56' fill='%230e0e08' rx='4'/%3E%3Cline x1='484' y1='396' x2='506' y2='418' stroke='%230e0e08' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='660'  cy='362' r='18' fill='%230e0e08'/%3E%3Crect x='645' y='378' width='30' height='55' fill='%230e0e08' rx='4'/%3E%3Cline x1='645' y1='394' x2='621' y2='416' stroke='%230e0e08' stroke-width='6' stroke-linecap='round'/%3E%3Ccircle cx='740'  cy='367' r='17' fill='%230e0e08'/%3E%3Crect x='726' y='382' width='28' height='52' fill='%230e0e08' rx='4'/%3E%3Cline x1='754' y1='394' x2='776' y2='414' stroke='%230e0e08' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='820'  cy='364' r='20' fill='%230e0e08'/%3E%3Crect x='804' y='382' width='32' height='58' fill='%230e0e08' rx='4'/%3E%3Cline x1='804' y1='400' x2='778' y2='422' stroke='%230e0e08' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='836' y1='400' x2='860' y2='420' stroke='%230e0e08' stroke-width='7' stroke-linecap='round'/%3E%3Ccircle cx='900'  cy='360' r='17' fill='%230e0e08'/%3E%3Crect x='886' y='376' width='28' height='52' fill='%230e0e08' rx='4'/%3E%3Cline x1='886' y1='390' x2='863' y2='412' stroke='%230e0e08' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* MYSTERY: dense jungle with LOST easter egg */
+  .bg-mystery {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='jungsky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%2306100a'/%3E%3Cstop offset='1' stop-color='%230a1408'/%3E%3C/linearGradient%3E%3CradialGradient id='mist' cx='50%25' cy='55%25' r='50%25'%3E%3Cstop offset='0' stop-color='%23204018' stop-opacity='0.35'/%3E%3Cstop offset='1' stop-color='%230a1408' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23jungsky)'/%3E%3Crect width='1200' height='600' fill='url(%23mist)'/%3E%3Ccircle cx='0'    cy='0'   r='250' fill='%230c1608' opacity='0.9'/%3E%3Ccircle cx='200'  cy='20'  r='230' fill='%230e1a0a' opacity='0.8'/%3E%3Ccircle cx='450'  cy='10'  r='250' fill='%230c1608' opacity='0.9'/%3E%3Ccircle cx='700'  cy='0'   r='240' fill='%230d180a' opacity='0.9'/%3E%3Ccircle cx='950'  cy='15'  r='250' fill='%230c1608' opacity='0.8'/%3E%3Ccircle cx='1200' cy='5'   r='240' fill='%230e1a0a' opacity='0.9'/%3E%3Ccircle cx='100'  cy='160' r='200' fill='%230b1407' opacity='0.85'/%3E%3Ccircle cx='340'  cy='170' r='220' fill='%230c1608' opacity='0.8'/%3E%3Ccircle cx='600'  cy='155' r='210' fill='%230b1407' opacity='0.85'/%3E%3Ccircle cx='860'  cy='165' r='220' fill='%230c1608' opacity='0.8'/%3E%3Ccircle cx='1100' cy='158' r='210' fill='%230b1407' opacity='0.85'/%3E%3Crect x='30'   y='130' width='60'  height='470' fill='%23091208'/%3E%3Crect x='175'  y='148' width='52'  height='452' fill='%230a1408'/%3E%3Crect x='340'  y='135' width='65'  height='465' fill='%23091208'/%3E%3Crect x='528'  y='145' width='58'  height='455' fill='%230a1408'/%3E%3Crect x='710'  y='138' width='62'  height='462' fill='%23091208'/%3E%3Crect x='895'  y='142' width='55'  height='458' fill='%230a1408'/%3E%3Crect x='1068' y='136' width='65'  height='464' fill='%23091208'/%3E%3Cellipse cx='600' cy='550' rx='750' ry='70' fill='%23183018' opacity='0.3'/%3E%3Cellipse cx='300' cy='570' rx='450' ry='55' fill='%23183018' opacity='0.18'/%3E%3Cellipse cx='900' cy='565' rx='420' ry='52' fill='%23183018' opacity='0.18'/%3E%3Cpolygon points='555,0 645,0 710,600 490,600' fill='%2320e070' opacity='0.014'/%3E%3Crect x='708' y='275' width='66' height='24' fill='%23080e06' rx='3'/%3E%3Ctext x='712' y='294' font-family='monospace' font-size='15' fill='%23285038' opacity='0.9'%3E4 8 15 16%3C/text%3E%3Crect x='335' y='320' width='72' height='22' fill='%23080e06' rx='2' opacity='0.8'/%3E%3Ctext x='338' y='337' font-family='monospace' font-size='13' fill='%23204030' opacity='0.75'%3E23 42%3C/text%3E%3Ccircle cx='600' cy='410' r='5'  fill='%2318d060' opacity='0.3'/%3E%3Ccircle cx='580' cy='430' r='3'  fill='%2318d060' opacity='0.25'/%3E%3Ccircle cx='622' cy='428' r='4'  fill='%2318d060' opacity='0.25'/%3E%3C/svg%3E");
+  }
+
+  /* RUINS: abandoned corridor with vanishing point */
+  .bg-ruins {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='corrbg' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230e0c08'/%3E%3Cstop offset='1' stop-color='%230a0806'/%3E%3C/linearGradient%3E%3CradialGradient id='light' cx='50%25' cy='50%25' r='40%25'%3E%3Cstop offset='0' stop-color='%23e09030' stop-opacity='0.12'/%3E%3Cstop offset='1' stop-color='%23e09030' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23corrbg)'/%3E%3Crect x='0'   y='0' width='270' height='600' fill='%23110e08'/%3E%3Crect x='930' y='0' width='270' height='600' fill='%23110e08'/%3E%3Crect x='270' y='0' width='660' height='145' fill='%230e0b07'/%3E%3Crect x='270' y='490' width='660' height='110' fill='%230e0b07'/%3E%3Crect width='1200' height='600' fill='url(%23light)'/%3E%3Cpolygon points='530,145 670,145 740,490 460,490' fill='%23c07820' opacity='0.03'/%3E%3Crect x='272' y='162' width='9'   height='316' fill='%23151008'/%3E%3Crect x='919' y='162' width='9'   height='316' fill='%23151008'/%3E%3Crect x='282' y='250' width='80'  height='130' fill='%23110e06' rx='2'/%3E%3Crect x='282' y='250' width='80'  height='130' fill='none' stroke='%231e1808' stroke-width='5'/%3E%3Cline x1='322' y1='250' x2='322' y2='380' stroke='%231e1808' stroke-width='4'/%3E%3Cline x1='282' y1='315' x2='362' y2='315' stroke='%231e1808' stroke-width='3'/%3E%3Cline x1='282' y1='270' x2='295' y2='285' stroke='%231e1808' stroke-width='2' opacity='0.5'/%3E%3Cline x1='362' y1='270' x2='349' y2='285' stroke='%231e1808' stroke-width='2' opacity='0.5'/%3E%3Crect x='840' y='255' width='78'  height='125' fill='%23110e06' rx='2'/%3E%3Crect x='840' y='255' width='78'  height='125' fill='none' stroke='%231e1808' stroke-width='5'/%3E%3Cline x1='879' y1='255' x2='879' y2='380' stroke='%231e1808' stroke-width='4'/%3E%3Cline x1='840' y1='318' x2='918' y2='318' stroke='%231e1808' stroke-width='3'/%3E%3Crect x='290' y='160' width='60'  height='85'  fill='%23110e06' rx='2'/%3E%3Crect x='290' y='160' width='60'  height='85'  fill='none' stroke='%231c1606' stroke-width='4'/%3E%3Cline x1='320' y1='160' x2='320' y2='245' stroke='%231c1606' stroke-width='3'/%3E%3Crect x='848' y='163' width='55'  height='80'  fill='%23110e06' rx='2'/%3E%3Crect x='848' y='163' width='55'  height='80'  fill='none' stroke='%231c1606' stroke-width='4'/%3E%3Cellipse cx='380' cy='495' rx='65' ry='16' fill='%23181208'/%3E%3Cellipse cx='820' cy='498' rx='55' ry='13' fill='%23161008'/%3E%3Ccircle cx='298' cy='210' r='3' fill='%23583008' opacity='0.5'/%3E%3Ccircle cx='310' cy='195' r='2' fill='%23583008' opacity='0.4'/%3E%3Ccircle cx='284' cy='198' r='2' fill='%23583008' opacity='0.4'/%3E%3Ccircle cx='600' cy='340' r='10' fill='%23080806'/%3E%3Crect x='594' y='340' width='14' height='32' fill='%23080806'/%3E%3Cline x1='594' y1='352' x2='580' y2='366' stroke='%23080806' stroke-width='4'/%3E%3Cline x1='608' y1='352' x2='622' y2='363' stroke='%23080806' stroke-width='4'/%3E%3Cline x1='594' y1='365' x2='588' y2='380' stroke='%23080806' stroke-width='3'/%3E%3Cline x1='608' y1='365' x2='614' y2='380' stroke='%23080806' stroke-width='3'/%3E%3C/svg%3E");
+  }
+
+  /* DEATH: dark graveyard with fog */
+  .bg-death {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='deathsky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%230a060c'/%3E%3Cstop offset='0.6' stop-color='%23160e18'/%3E%3Cstop offset='1' stop-color='%230c080e'/%3E%3C/linearGradient%3E%3CradialGradient id='deadmoon' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0' stop-color='%23601068' stop-opacity='0.5'/%3E%3Cstop offset='0.6' stop-color='%23380840' stop-opacity='0.4'/%3E%3Cstop offset='1' stop-color='%23380840' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23deathsky)'/%3E%3Crect y='390' width='1200' height='210' fill='%230a080c'/%3E%3Ccircle cx='600' cy='95'  r='52' fill='%23381040' opacity='0.45'/%3E%3Ccircle cx='600' cy='95'  r='42' fill='%23501858' opacity='0.5'/%3E%3Ccircle cx='600' cy='95'  r='30' fill='%23682070' opacity='0.5'/%3E%3Ccircle cx='600' cy='95'  r='18' fill='%23803888' opacity='0.5'/%3E%3Ccircle cx='120' cy='55' r='2'  fill='%23c0a0d0' opacity='0.5'/%3E%3Ccircle cx='250' cy='28' r='1.5' fill='%23c0a0d0' opacity='0.5'/%3E%3Ccircle cx='400' cy='45' r='2'  fill='%23c0a0d0' opacity='0.4'/%3E%3Ccircle cx='750' cy='22' r='1.5' fill='%23c0a0d0' opacity='0.5'/%3E%3Ccircle cx='950' cy='50' r='2'  fill='%23c0a0d0' opacity='0.4'/%3E%3Ccircle cx='1100' cy='32' r='1.5' fill='%23c0a0d0' opacity='0.5'/%3E%3Crect x='85'  y='292' width='12'  height='82' fill='%23201428'/%3E%3Crect x='79'  y='308' width='44'  height='10' fill='%23201428'/%3E%3Crect x='85'  y='350' width='12'  height='10' fill='%23140c1a'/%3E%3Crect x='215' y='286' width='12'  height='88' fill='%23201428'/%3E%3Crect x='209' y='304' width='44'  height='10' fill='%23201428'/%3E%3Crect x='370' y='294' width='12'  height='80' fill='%23201428'/%3E%3Crect x='364' y='310' width='40'  height='8'  fill='%23201428'/%3E%3Crect x='370' y='294' width='12'  height='10' fill='%23140c1a'/%3E%3Crect x='540' y='290' width='12'  height='85' fill='%23201428'/%3E%3Crect x='534' y='305' width='42'  height='9'  fill='%23201428'/%3E%3Crect x='720' y='288' width='12'  height='87' fill='%23201428'/%3E%3Crect x='714' y='306' width='44'  height='10' fill='%23201428'/%3E%3Crect x='720' y='288' width='12'  height='10' fill='%23140c1a'/%3E%3Crect x='870' y='292' width='12'  height='83' fill='%23201428'/%3E%3Crect x='864' y='308' width='40'  height='9'  fill='%23201428'/%3E%3Crect x='1010' y='286' width='12'  height='88' fill='%23201428'/%3E%3Crect x='1004' y='304' width='44'  height='10' fill='%23201428'/%3E%3Crect x='1010' y='286' width='12'  height='10' fill='%23140c1a'/%3E%3Crect x='1130' y='290' width='10'  height='84' fill='%231a1022'/%3E%3Crect x='1125' y='305' width='36'  height='8'  fill='%231a1022'/%3E%3Crect x='135' y='298' width='55'  height='65'  fill='%23160e1c' rx='2'/%3E%3Crect x='135' y='298' width='55'  height='65'  fill='none' stroke='%23241630' stroke-width='3'/%3E%3Cline x1='162' y1='298' x2='162' y2='363' stroke='%23241630' stroke-width='2'/%3E%3Cline x1='135' y1='330' x2='190' y2='330' stroke='%23241630' stroke-width='2'/%3E%3Ccircle cx='410' cy='305' r='5'  fill='%23282030' opacity='0.4'/%3E%3Ccircle cx='450' cy='308' r='3'  fill='%23282030' opacity='0.4'/%3E%3Ccircle cx='430' cy='315' r='4'  fill='%23282030' opacity='0.3'/%3E%3Cellipse cx='600' cy='430' rx='720' ry='65' fill='%23281c38' opacity='0.22'/%3E%3Cellipse cx='350' cy='450' rx='400' ry='50' fill='%23201630' opacity='0.15'/%3E%3Cellipse cx='900' cy='445' rx='380' ry='48' fill='%23201630' opacity='0.15'/%3E%3Ccircle cx='600' cy='390' r='16' fill='%230c0810'/%3E%3Crect x='588' y='404' width='22' height='24' fill='%230c0810' rx='3'/%3E%3Cline x1='588' y1='412' x2='570' y2='428' stroke='%230c0810' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='610' y1='412' x2='628' y2='426' stroke='%230c0810' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+  /* WIN: dawn horizon with open gate */
+  .bg-win {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 600'%3E%3Cdefs%3E%3ClinearGradient id='dawngrd' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23281806'/%3E%3Cstop offset='0.4' stop-color='%23583008'/%3E%3Cstop offset='0.65' stop-color='%23381a04'/%3E%3Cstop offset='1' stop-color='%231a1004'/%3E%3C/linearGradient%3E%3CradialGradient id='sunburst' cx='50%25' cy='58%25' r='45%25'%3E%3Cstop offset='0' stop-color='%23ffcc40' stop-opacity='0.65'/%3E%3Cstop offset='0.3' stop-color='%23e08020' stop-opacity='0.4'/%3E%3Cstop offset='1' stop-color='%23e08020' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='1200' height='600' fill='url(%23dawngrd)'/%3E%3Crect width='1200' height='600' fill='url(%23sunburst)'/%3E%3Cellipse cx='600' cy='352' rx='1000' ry='50' fill='%23704010' opacity='0.55'/%3E%3Ccircle cx='600' cy='332' r='72' fill='%23905010' opacity='0.45'/%3E%3Ccircle cx='600' cy='332' r='58' fill='%23c07818' opacity='0.5'/%3E%3Ccircle cx='600' cy='332' r='42' fill='%23e09828' opacity='0.5'/%3E%3Ccircle cx='600' cy='332' r='28' fill='%23f8b838' opacity='0.55'/%3E%3Ccircle cx='600' cy='332' r='16' fill='%23ffdd80' opacity='0.6'/%3E%3Cline x1='600' y1='268' x2='588' y2='210' stroke='%23906020' stroke-width='2' opacity='0.35'/%3E%3Cline x1='600' y1='268' x2='638' y2='214' stroke='%23906020' stroke-width='2' opacity='0.35'/%3E%3Cline x1='600' y1='268' x2='695' y2='240' stroke='%23906020' stroke-width='2' opacity='0.28'/%3E%3Cline x1='600' y1='268' x2='505' y2='238' stroke='%23906020' stroke-width='2' opacity='0.28'/%3E%3Cline x1='600' y1='268' x2='740' y2='298' stroke='%23906020' stroke-width='2' opacity='0.22'/%3E%3Cline x1='600' y1='268' x2='460' y2='296' stroke='%23906020' stroke-width='2' opacity='0.22'/%3E%3Crect y='352' width='1200' height='248' fill='%23201208'/%3E%3Crect x='475' y='250' width='18'  height='152' fill='%23402008'/%3E%3Crect x='707' y='250' width='18'  height='152' fill='%23402008'/%3E%3Crect x='475' y='248' width='250' height='18'  fill='%23502808'/%3E%3Crect x='475' y='268' width='250' height='10'  fill='%23402008'/%3E%3Crect x='475' y='285' width='250' height='10'  fill='%23402008'/%3E%3Crect x='475' y='305' width='250' height='10'  fill='%23402008'/%3E%3Crect x='475' y='325' width='250' height='10'  fill='%23402008'/%3E%3Crect x='560' y='248' width='10'  height='154' fill='%23402008'/%3E%3Crect x='630' y='248' width='10'  height='154' fill='%23402008'/%3E%3Ccircle cx='600' cy='358' r='17' fill='%23281004'/%3E%3Crect x='586' y='374' width='28' height='48' fill='%23281004' rx='3'/%3E%3Cline x1='586' y1='384' x2='560' y2='358' stroke='%23281004' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='614' y1='384' x2='640' y2='358' stroke='%23281004' stroke-width='7' stroke-linecap='round'/%3E%3Cline x1='586' y1='412' x2='578' y2='435' stroke='%23281004' stroke-width='5' stroke-linecap='round'/%3E%3Cline x1='614' y1='412' x2='622' y2='435' stroke='%23281004' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
+  }
+
+
+
+  /* ═══════════════════════════════════════
+     LAYOUT
+  ═══════════════════════════════════════ */
+  .wrapper { position: relative; z-index: 3; max-width: 1020px; margin: 0 auto; padding: 0 16px 40px; }
+
+  .rust-bar { position: relative; z-index: 3; height: 3px; background: #5c1800; }
+
+  header {
+    padding: 26px 0 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .eyebrow { font-size: 0.58rem; letter-spacing: 5px; color: var(--dim); text-transform: uppercase; margin-bottom: 3px; }
+
+  h1 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    text-transform: uppercase;
+    letter-spacing: 8px;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .header-right { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 3px; color: var(--dim); text-transform: uppercase; text-align: right; padding-bottom: 3px; }
+
+  .msg-wrap { margin-top: 10px; }
+
+  .msg { padding: 9px 13px; font-family: 'Inter', sans-serif; font-size: 0.88rem; border-left: 3px solid var(--grey); background: var(--s1); color: var(--off); }
+  .msg.danger { border-color: #7a2000; background: #160805; color: #b87060; }
+  .msg.warn   { border-color: #6e5000; background: #130e00; color: #a08040; }
+  .msg.event  { border-color: #3e3060; background: #100e18; color: #8878b0; font-style: italic; }
+
+  .hud { display: flex; flex-wrap: wrap; background: var(--s1); border: 1px solid var(--border); border-top: 2px solid var(--border2); margin-top: 12px; }
+
+  .hs { display: flex; flex-direction: column; gap: 2px; flex: 1 1 95px; padding: 10px 13px; border-right: 1px solid var(--border); }
+  .hs:last-of-type { border-right: none; }
+  .hs .lbl { font-size: 0.56rem; color: var(--dim); text-transform: uppercase; letter-spacing: 2px; }
+  .hs .val { font-family: 'Inter', sans-serif; font-size: 1.35rem; font-weight: 600; color: var(--white); line-height: 1; }
+  .hs .val.w { color: #b08838; }
+  .hs .val.d { color: #a03418; }
+
+  .hud-prog { flex: 1 1 100%; padding: 9px 13px 11px; border-top: 1px solid var(--border); }
+  .prog-meta { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .prog-lbl { font-size: 0.56rem; text-transform: uppercase; letter-spacing: 2px; color: var(--dim); }
+  .prog-r { font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 2px; color: var(--grey); }
+  .prog-track { height: 3px; background: var(--mute); }
+  .prog-fill { height: 100%; background: var(--grey); transition: width 0.5s ease; }
+
+  .grid { display: grid; grid-template-columns: 1fr 275px; gap: 10px; margin-top: 10px; }
+  @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+  .lc { display: flex; flex-direction: column; gap: 10px; }
+  .rc { display: flex; flex-direction: column; gap: 10px; }
+
+  .panel { background: var(--s1); border: 1px solid var(--border); }
+  .ph { padding: 7px 13px; border-bottom: 1px solid var(--border); background: var(--s2); display: flex; align-items: center; gap: 8px; }
+  .ph-t { font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: var(--grey); }
+  .ph-x { margin-left: auto; font-size: 0.62rem; color: var(--dim); }
+  .pb { padding: 13px; }
+
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+  .act {
+    display: flex; flex-direction: column; gap: 1px;
+    padding: 11px 12px;
+    background: var(--s2); border: 1px solid var(--border); border-left: 2px solid var(--border2);
+    color: var(--off); text-decoration: none; cursor: pointer;
+    transition: background 0.1s, border-color 0.1s, color 0.08s;
+    font-family: 'Inter', sans-serif; font-size: 0.82rem; text-align: left;
+  }
+
+  .act:hover { background: var(--s3); border-left-color: var(--grey); color: var(--white); }
+  .act:active { opacity: 0.75; }
+
+  .act .an { font-family: 'Inter', sans-serif; font-size: 0.8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--white); }
+  .act .ah { font-family: 'Inter', sans-serif; font-size: 0.7rem; color: var(--dim); }
+  .act:hover .ah { color: var(--grey); }
+
+  .act.fight   { border-left-color: #5c1800; }
+  .act.fight:hover { border-left-color: #9a2a00; }
+  .act.mystery { border-left-color: #32245a; }
+  .act.mystery:hover { border-left-color: #5a3e9a; }
+  .act.recruit { border-left-color: #182c0e; }
+  .act.recruit:hover { border-left-color: #2a4a18; }
+
+  .ev-box { border: 1px solid #3a2c5a; background: #0d0b16; padding: 14px; }
+  .ev-h { font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 3px; color: var(--grey); margin-bottom: 8px; }
+  .ev-m { font-family: 'Inter', sans-serif; font-size: 0.88rem; color: var(--off); margin-bottom: 14px; line-height: 1.8; }
+  .cr { display: flex; gap: 7px; flex-wrap: wrap; }
+  .cb { display: inline-block; padding: 7px 14px; font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border: 1px solid var(--border2); color: var(--off); background: var(--s2); transition: background 0.1s, color 0.1s; }
+  .cb:hover { background: var(--s3); color: var(--white); }
+  .cb.red { border-color: #5c1800; color: #b06050; }
+  .cb.red:hover { background: #1c0800; color: #d08060; }
+  .cb.grn { border-color: #1c3010; color: #708860; }
+  .cb.grn:hover { background: #0c1808; color: #90a870; }
+  button.cb { cursor: pointer; }
+
+  .log-scroll { max-height: 170px; overflow-y: auto; display: flex; flex-direction: column; gap: 1px; }
+  .log-scroll::-webkit-scrollbar { width: 3px; }
+  .log-scroll::-webkit-scrollbar-thumb { background: var(--border2); }
+  .le { display: flex; gap: 9px; padding: 4px 0; border-bottom: 1px solid var(--border); font-size: 0.77rem; }
+  .le:last-child { border-bottom: none; }
+  .le-d { font-size: 0.58rem; color: var(--dim); flex-shrink: 0; padding-top: 2px; min-width: 26px; }
+  .le-m { font-family: 'Inter', sans-serif; font-size: 0.78rem; color: var(--grey); }
+  .le.good .le-m { color: #708858; }
+  .le.bad  .le-m { color: #9a5040; }
+  .le.warn .le-m { color: #907838; }
+  .le.loot .le-m { color: #786090; font-style: italic; }
+  .log-empty { font-family: 'Inter', sans-serif; font-size: 0.78rem; color: var(--dim); }
+
+  .inv-scroll { max-height: 195px; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; }
+  .inv-scroll::-webkit-scrollbar { width: 3px; }
+  .inv-scroll::-webkit-scrollbar-thumb { background: var(--border2); }
+  .inv-item { font-family: 'Inter', sans-serif; font-size: 0.77rem; padding: 3px 9px; background: var(--s2); border-left: 2px solid var(--border2); color: var(--grey); }
+  .inv-empty { font-family: 'Inter', sans-serif; font-size: 0.77rem; color: var(--dim); }
+
+  .sr { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 0.77rem; }
+  .sr:last-child { border-bottom: none; }
+  .sk { font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .sv { font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 600; color: var(--off); letter-spacing: 1px; }
+
+  footer { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--border); font-family: 'Inter', sans-serif; font-size: 0.72rem; color: var(--dim); text-align: center; }
+
+  .go-wrap { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 4000; display: flex; align-items: center; justify-content: center; }
+  .go-box { background: var(--s1); border: 1px solid var(--border2); border-top: 2px solid #5c1800; max-width: 430px; width: 90%; padding: 30px 34px; text-align: center; }
+  .go-box.win { border-top-color: #1e3c12; }
+  .go-box h2 { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 2.4rem; text-transform: uppercase; letter-spacing: 6px; color: var(--white); margin-bottom: 5px; }
+  .go-sub { font-family: 'Inter', sans-serif; font-size: 0.85rem; color: var(--dim); margin-bottom: 18px; }
+  .go-stats { text-align: left; border: 1px solid var(--border); padding: 11px 13px; margin-bottom: 18px; background: var(--s2); }
+  .go-btn { display: inline-block; padding: 9px 26px; background: transparent; border: 1px solid var(--border2); color: var(--grey); font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 3px; text-decoration: none; transition: background 0.1s, color 0.1s; }
+  .go-btn:hover { background: var(--s3); color: var(--white); }
+
+  </style>
+</head>
+<body data-last-action="{{ last_action }}">
+
+<div id="bg"></div>
+<div id="bg-tint"></div>
+<div id="grain"></div>
+
+<div class="rust-bar"></div>
+
+<div class="wrapper">
+
+  <header>
+    <div>
+      <div class="eyebrow">Apocalypse Survival Log</div>
+      <h1>The Wanderer</h1>
+    </div>
+    <div class="header-right">Day {{ state.day }} &nbsp;/&nbsp; Stage {{ [((state.progress // 1000) + 1), 10] | min }} of 10</div>
+  </header>
+
+  {% if message %}
+    {% set ml = message | lower %}
+    <div class="msg-wrap">
+      {% if 'died' in ml or 'raid' in ml or 'attacked' in ml or 'trap' in ml or 'game over' in ml or 'spoil' in ml or 'mine' in ml or 'lose all hope' in ml or 'insane' in ml %}
+        <div class="msg danger">{{ message }}</div>
+      {% elif 'stranger' in ml or 'building' in ml or 'event' in ml or 'screaming' in ml or 'stealing' in ml or 'military base' in ml or 'dog' in ml or 'baby crying' in ml %}
+        <div class="msg event">{{ message }}</div>
+      {% elif 'warn' in ml or 'low' in ml or 'surrend' in ml %}
+        <div class="msg warn">{{ message }}</div>
+      {% else %}
+        <div class="msg">{{ message }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% set health = state.health | int %}
+  {% set food   = state.food %}
+  {% set ammo   = state.ammo %}
+  {% set pts    = state.progress %}
+  {% set level  = [((pts // 1000) + 1), 10] | min %}
+  {% set lv_pts = pts % 1000 %}
+  {% set pct    = (lv_pts / 1000 * 100) | int %}
+
+  <div class="hud">
+    <div class="hs">
+        <span class="lbl">Day</span>
+        <span class="val">{{ state.day }}<br><small style="font-size:0.6rem;opacity:0.5;font-weight:normal;">({{ state.weather }})</small></span>
+    </div>
+    <div class="hs"><span class="lbl">Level</span><span class="val">{{ state.level }}</span></div>
+    <div class="hs"><span class="lbl">Health</span><span class="val {% if health <= 20 %}d{% elif health <= 50 %}w{% endif %}">{{ health }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
+    <div class="hs"><span class="lbl">Food</span><span class="val {% if food <= 5 %}d{% elif food <= 15 %}w{% endif %}">{{ food }}</span></div>
+    <div class="hs"><span class="lbl">Ammo</span><span class="val {% if ammo <= 5 %}d{% elif ammo <= 10 %}w{% endif %}">{{ ammo }}</span></div>
+    <div class="hs"><span class="lbl">XP</span><span class="val">{{ state.experience_points | int }}</span></div>
+    <div class="hs"><span class="lbl">Survivors</span><span class="val">{{ state.survivors }}</span></div>
+    <div class="hs"><span class="lbl">Morale</span><span class="val {% if state.morale <= 20 %}d{% elif state.morale <= 50 %}w{% endif %}">{{ state.morale }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
+    <div class="hs"><span class="lbl">Sanity</span><span class="val {% if state.sanity <= 20 %}d{% elif state.sanity <= 50 %}w{% endif %}">{{ state.sanity }}<small style="font-size:0.6rem;opacity:0.35">/100</small></span></div>
+    <div class="hs"><span class="lbl">Respect</span><span class="val">{{ state.respect }}</span></div>
+    <div class="hud-prog">
+      <div class="prog-meta">
+        <span class="prog-lbl">Progress to Safe Zone</span>
+        <span class="prog-r">Stage {{ level }} / 10 &mdash; {{ lv_pts }} / 1000 ({{ pts }} total)</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" style="width:{{ pct }}%"></div></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="lc">
+      <div class="panel">
+        <div class="ph"><span class="ph-t">Character</span></div>
+        <div class="pb">
+          <div class="paper-doll" style="position: relative; width: 100%; height: 260px; background: #0a0907; border: 1px solid var(--border2); border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
+            
+            <!-- 1. Βάση -->
+            <img src="{{ url_for('static', filename='base.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+            
+            <!-- 2. Επιζώντες -->
+            {% if state.survivors > 0 %}
+                <img src="{{ url_for('static', filename='recruit.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:-35px; width:100%; height:100%; object-fit:contain; transform: scale(0.9);">
+                {% if state.survivors > 1 %}
+                    <img src="{{ url_for('static', filename='recruit.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:35px; width:100%; height:100%; object-fit:contain; transform: scale(0.8);">
+                {% endif %}
+            {% endif %}
+
+            <!-- 3. Εξοπλισμός (Το δυναμικό loop) -->
+            {% for item in state.inventory %}
+                {% set filename = item | lower | replace(' ', '_') ~ '.png' %}
+                <img src="{{ url_for('static', filename=filename) }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+            {% endfor %}
+
+            <!-- 4. Damage & Madness -->
+            {% if state.health <= 40 %}
+                <img src="{{ url_for('static', filename='blood_splatter.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+            {% endif %}
+            
+            {% if state.sanity <= 30 %}
+                <img src="{{ url_for('static', filename='crazy_eyes.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><span class="ph-t">Actions</span></div>
+        <div class="pb">
+
+          {% if state.active_event_id is not none %}
+            <div class="ev-box">
+              <div class="ev-h">Event In Progress</div>
+              <div class="ev-m">{{ message }}</div>
+              <div class="cr">
+                {% if state.active_event_id == 0 %}
+                  <a href="/event_choice/1" class="cb red"  data-bg="fight"   data-snd="fight">Fight Back</a>
+                  <a href="/event_choice/2" class="cb"      data-bg="default" data-snd="click">Surrender</a>
+                {% elif state.active_event_id == 3 %}
+                  <a href="/event_choice/Y" class="cb grn"  data-bg="default" data-snd="loot">Trade (2 Food for 5 Ammo)</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Refuse</a>
+                {% elif state.active_event_id == 5 %}
+                  <a href="/event_choice/Y" class="cb grn"  data-bg="ruins"   data-snd="creak">Enter Building</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Walk Away</a>
+                {% elif state.active_event_id == 6 %}
+                  <a href="/event_choice/Y" class="cb grn"  data-bg="default" data-snd="click">Investigate</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Ignore</a>
+                {% elif state.active_event_id == 7 %}
+                  <a href="/event_choice/1" class="cb red"  data-bg="fight"   data-snd="fight">Kill Him</a>
+                  <a href="/event_choice/2" class="cb"      data-bg="default" data-snd="click">Let Him Go</a>
+                {% elif state.active_event_id == 8 %}
+                  <a href="/event_choice/Y" class="cb grn"  data-bg="ruins"   data-snd="loot">Raid the Base</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Walk Away</a>
+                {% elif state.active_event_id == 9 %}
+                  <a href="/event_choice/Y" class="cb grn"  data-bg="default" data-snd="click">Feed the Dog</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Leave It</a>
+                {% elif state.active_event_id == 10 %}
+                  <a href="/event_choice/Y" class="cb"      data-bg="ruins"   data-snd="creak">Approach</a>
+                  <a href="/event_choice/N" class="cb red"  data-bg="default" data-snd="click">Ignore</a>
+                {% elif state.active_event_id == 13 %}
+                  <a href="/event_choice/1" class="cb grn"  data-bg="default" data-snd="click">Safe 1st Floor</a>
+                  <a href="/event_choice/2" class="cb red"  data-bg="ruins"   data-snd="creak">Dark Basement</a>
+                {% elif state.active_event_id == 14 %}
+                  <a href="/event_choice/1" class="cb grn"  data-bg="default" data-snd="click">Amputate</a>
+                  <a href="/event_choice/2" class="cb red"  data-bg="fight"   data-snd="fight">Kill Him</a>
+                {% elif state.active_event_id == 15 %}
+                  <a href="/event_choice/1" class="cb"      data-bg="rest"    data-snd="rest">Secure Camp</a>
+                  <a href="/event_choice/2" class="cb red"  data-bg="mystery" data-snd="mystery">Keep Scavenging</a>
+                {% elif state.active_event_id == 999 %}
+                  {% if state.offered_perks %}
+                    {% for perk in state.offered_perks %}
+                      <form action="/event_choice/{{ loop.index }}" method="get" style="display:inline;">
+                        <button type="submit" class="cb grn" data-bg="default" data-snd="loot">Pick: {{ perk }}</button>
+                      </form>
+                    {% endfor %}
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+
+          {% else %}
+            <div class="actions">
+
+              <a href="/scavenge" class="act"         data-bg="scavenge" data-snd="rustle">
+                <span class="an">Scavenge</span>
+                <span class="ah">Search ruins for supplies</span>
+              </a>
+
+              <a href="/fight" class="act fight"      data-bg="fight"    data-snd="fight">
+                <span class="an">Fight</span>
+                <span class="ah">Engage the walkers</span>
+              </a>
+
+              <form action="/rest_form" method="POST" style="display:contents;">
+                <button type="submit" class="act" onclick="submitRest(event,this)" style="border:none;text-align:left;" data-bg="rest" data-snd="rest">
+                  <span class="an">Rest</span>
+                  <span class="ah">Eat rations, recover health</span>
+                </button>
+                <input type="hidden" name="portion" id="rest-portion" value="1"/>
+              </form>
+
+              <a href="/random_event" class="act mystery" data-bg="mystery" data-snd="mystery">
+                <span class="an">Into the Dark</span>
+                <span class="ah">Something stirs on the island</span>
+              </a>
+
+              <a href="/recruit" class="act recruit"  data-bg="recruit"  data-snd="recruit">
+                <span class="an">Recruit</span>
+                <span class="ah">Find survivors, costs 2 food</span>
+              </a>
+
+              <a href="/new_game" class="act"         data-bg="default"  data-snd="click"
+                 onclick="return confirm('Abandon this timeline?')">
+                <span class="an">New Game</span>
+                <span class="ah">Reset everything</span>
+              </a>
+
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph">
+          <span class="ph-t">Journal</span>
+          <span class="ph-x">{{ session.get('log', []) | length }} entries</span>
+        </div>
+        <div class="pb">
+          <div class="log-scroll" id="log">
+            {% set entries = session.get('log', []) %}
+            {% if entries %}
+              {% for e in entries | reverse %}
+                <div class="le {{ e.type }}"><span class="le-d">D{{ '%02d' % e.day }}</span><span class="le-m">{{ e.msg }}</span></div>
+              {% endfor %}
+            {% else %}
+              <span class="log-empty">The journal is empty. Begin your journey.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div> <!-- Κλείσιμο αριστερής στήλης (lc) -->
+
+    <!-- Άνοιγμα δεξιάς στήλης (rc) -->
+    <div class="rc">
+      
+      <!-- Νέο Panel για τα Perks -->
+      <div class="panel">
+        <div class="ph"><span class="ph-t">Perks</span><span class="ph-x">{{ state.perks | length }} active</span></div>
+        <div class="pb">
+          <div class="inv-scroll">
+            {% if state.perks %}
+              {% for perk in state.perks %}
+                <div class="inv-item" style="color: #e0b848; border-left-color: #c09030;">✦ {{ perk }}</div>
+              {% endfor %}
+            {% else %}
+              <span class="inv-empty">No perks unlocked. Reach 100 XP.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><span class="ph-t">Backpack</span><span class="ph-x">{{ state.inventory | length }} items</span></div>
+        <div class="pb">
+          <div class="inv-scroll">
+            {% if state.inventory %}
+              {% for item in state.inventory | reverse %}<div class="inv-item">{{ item }}</div>{% endfor %}
+            {% else %}
+              <span class="inv-empty">Nothing yet. Start scavenging.</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="ph"><span class="ph-t">Dossier</span></div>
+        <div class="pb">
+          <div class="sr"><span class="sk">Walkers Killed</span><span class="sv">{{ state.total_zombies_killed }}</span></div>
+          <div class="sr"><span class="sk">Food Consumed</span> <span class="sv">{{ state.total_food_eaten }}</span></div>
+          <div class="sr"><span class="sk">Times Healed</span>  <span class="sv">{{ state.total_health_recoveries }}</span></div>
+          <div class="sr"><span class="sk">Highest XP</span>   <span class="sv">{{ state.highest_xp | int }}</span></div>
+          <div class="sr"><span class="sk">Items Found</span>  <span class="sv">{{ state.inventory | length }}</span></div>
+        </div>
+      </div>
+    </div> <!-- Κλείσιμο δεξιάς στήλης (rc) -->
+  </div> <!-- Κλείσιμο Grid -->
+
+  <footer>"We have to go back." &mdash; The Wanderer &mdash; Survive or be consumed</footer>
+
+</div>
+
+{% if 'GAME OVER' in message or 'SAFE ZONE' in message %}
+  {% set is_win = 'SAFE ZONE' in message %}
+  <div class="go-wrap">
+    <div class="go-box {% if is_win %}win{% endif %}">
+      {% if is_win %}<h2>Safe Zone</h2><p class="go-sub">Against all odds, you made it.</p>
+      {% else %}      <h2>You Fell</h2><p class="go-sub">The dead have claimed another soul.</p>{% endif %}
+      <div class="go-stats">
+        <div class="sr"><span class="sk">Days Survived</span>  <span class="sv">{{ state.day }}</span></div>
+        <div class="sr"><span class="sk">Stage Reached</span>  <span class="sv">{{ level }} / 10</span></div>
+        <div class="sr"><span class="sk">Walkers Killed</span> <span class="sv">{{ state.total_zombies_killed }}</span></div>
+        <div class="sr"><span class="sk">Items Found</span>    <span class="sv">{{ state.inventory | length }}</span></div>
+        <div class="sr"><span class="sk">XP Earned</span>      <span class="sv">{{ state.experience_points | int }}</span></div>
+      </div>
+      <a href="/new_game" class="go-btn">Start Over</a>
+    </div>
+  </div>
+{% endif %}
+
+<script>
+/* ══════════════════════════════════════════════
+   BACKGROUND SCENES
+══════════════════════════════════════════════ */
+const SCENES = {
+  default:  'bg-default',
+  scavenge: 'bg-scavenge',
+  fight:    'bg-fight',
+  rest:     'bg-rest',
+  recruit:  'bg-recruit',
+  mystery:  'bg-mystery',
+  ruins:    'bg-ruins',
+  death:    'bg-death',
+  win:      'bg-win',
+};
+
+const bgEl     = document.getElementById('bg');
+let   activeKey = document.body.dataset.lastAction || 'default';
+
+function setScene(key) {
+  const cls = SCENES[key] || SCENES.default;
+  bgEl.style.opacity = '0';
+  setTimeout(() => {
+    bgEl.className = cls;
+    bgEl.style.opacity = '1';
+  }, 350);
+}
+
+setScene(activeKey);
+
+document.querySelectorAll('[data-bg]').forEach(el => {
+  el.addEventListener('mouseenter', () => setScene(el.dataset.bg));
+  el.addEventListener('mouseleave', () => setScene(activeKey));
+});
+
+/* ══════════════════════════════════════════════
+   SOUND ENGINE  —  Web Audio API, no files
+══════════════════════════════════════════════ */
+let _ctx = null;
+
+function ac() {
+  if (!_ctx) _ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (_ctx.state === 'suspended') _ctx.resume();
+  return _ctx;
+}
+
+function tone(freq, type, vol, t0, dur, freqEnd) {
+  const c = ac(); const o = c.createOscillator(); const g = c.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t0);
+  if (freqEnd !== undefined) o.frequency.linearRampToValueAtTime(freqEnd, t0 + dur);
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0 + dur + 0.02);
+}
+
+function noise(vol, t0, dur, hp) {
+  const c = ac(); const sr = c.sampleRate;
+  const len = Math.ceil(sr * dur);
+  const buf = c.createBuffer(1, len, sr);
+  const d   = buf.getChannelData(0);
+  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+  const src = c.createBufferSource(); const g = c.createGain();
+  src.buffer = buf;
+  if (hp) { const f = c.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; src.connect(f); f.connect(g); }
+  else src.connect(g);
+  g.gain.setValueAtTime(vol, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  g.connect(c.destination);
+  src.start(t0); src.stop(t0 + dur + 0.02);
+}
+
+const SND = {
+  click()   { const t=ac().currentTime; noise(0.07,t,0.022,2200); tone(1100,'sine',0.04,t,0.018); },
+  rustle()  { const t=ac().currentTime; noise(0.06,t,0.10,900); noise(0.04,t+0.13,0.09,1300); noise(0.05,t+0.26,0.11,700); tone(380,'sine',0.05,t+0.28,0.25,210); },
+  fight()   { const t=ac().currentTime; noise(0.55,t,0.04); noise(0.28,t+0.04,0.06,180); tone(88,'sawtooth',0.5,t,0.07,38); tone(58,'sawtooth',0.3,t+0.05,0.10,28); tone(1900,'sine',0.07,t+0.14,0.08,1200); noise(0.07,t+0.18,0.18,400); },
+  rest()    { const t=ac().currentTime; [330,415,494,622].forEach((f,i)=>tone(f,'sine',0.10,t+i*0.1,0.4)); },
+  loot()    { const t=ac().currentTime; [523,659,784,1047].forEach((f,i)=>tone(f,'triangle',0.11,t+i*0.08,0.3)); },
+  mystery() { const t=ac().currentTime; tone(55,'sine',0.35,t,0.9,40); tone(110,'sine',0.14,t,0.7,80); noise(0.06,t+0.3,0.6,200); tone(220,'sawtooth',0.04,t+0.5,0.4,160); },
+  recruit() { const t=ac().currentTime; noise(0.04,t,0.14,300); tone(260,'sine',0.07,t+0.05,0.3,240); tone(310,'sine',0.05,t+0.20,0.3,280); noise(0.03,t+0.35,0.12,500); },
+  creak()   { const t=ac().currentTime; tone(180,'sawtooth',0.12,t,0.5,118); tone(240,'sawtooth',0.07,t+0.1,0.4,158); noise(0.05,t,0.5,600); },
+  death()   { const t=ac().currentTime; noise(0.4,t,0.35); tone(70,'sawtooth',0.6,t,0.5,38); tone(50,'sawtooth',0.5,t+0.3,0.7,28); tone(35,'sawtooth',0.4,t+0.7,1.0,24); },
+  win()     { const t=ac().currentTime; [523,659,784,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,'sine',0.10,t+i*0.1,0.25)); },
+};
+
+document.querySelectorAll('[data-snd]').forEach(el => {
+  el.addEventListener('click', () => { const s=el.dataset.snd; if(SND[s]) SND[s](); });
+});
+
+{% if 'GAME OVER' in message %}
+  window.addEventListener('load', () => { setTimeout(()=>{ setScene('death'); SND.death(); }, 400); });
+{% elif 'SAFE ZONE' in message %}
+  window.addEventListener('load', () => { setTimeout(()=>{ setScene('win'); SND.win(); }, 400); });
+{% endif %}
+
+function submitRest(e, btn) {
+  e.preventDefault(); SND.click();
+  const food = {{ state.food }};
+  const raw  = prompt('Rations available: '+food+'\nHow many do you want to eat?');
+  const n    = parseInt(raw);
+  if (isNaN(n)||n<=0) return;
+  if (n>food) { alert('Not enough rations.'); return; }
+  SND.rest();
+  document.getElementById('rest-portion').value = n;
+  btn.closest('form').submit();
+}
+
+const logEl = document.getElementById('log');
+if (logEl) logEl.scrollTop = logEl.scrollHeight;
+
+</script>
+</body>
+</html>
