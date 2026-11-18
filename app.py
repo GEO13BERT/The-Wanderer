@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, redirect, url_for
 from engine import new_game, scavenge, fight, rest, recruit_team, resolve_event_choice, check_game_over, generate_random_event
 from engine import use_item, check_level_up, item_rarity, is_usable, damage_per_zombie, PERK_INFO, STAGE_SIZE, SAFE_ZONE_DISTANCE, HORDE_EVERY
+from engine import WEAPON_ITEMS, ARMOR_ITEMS, GUN_ITEMS
 import os
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "zombie_secret_key_5")
@@ -9,6 +10,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "zombie_secret_key_5")
 app.jinja_env.globals.update(
     item_rarity=item_rarity, is_usable=is_usable, damage_per_zombie=damage_per_zombie,
     PERK_INFO=PERK_INFO, STAGE_SIZE=STAGE_SIZE, SAFE_ZONE_DISTANCE=SAFE_ZONE_DISTANCE, HORDE_EVERY=HORDE_EVERY,
+    WEAPON_ITEMS=WEAPON_ITEMS, ARMOR_ITEMS=ARMOR_ITEMS, GUN_ITEMS=GUN_ITEMS,
 )
 
 def add_log(msg, log_type=""):

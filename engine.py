@@ -41,6 +41,7 @@ HORDE_EVERY = 7
 AMMO_ITEMS   = ["9mm bullets", "Shotgun shells", "Crossbow bolt"]
 WEAPON_ITEMS = [i for i in RARE_ITEMS if i not in AMMO_ITEMS] + ["RPG", "AK-47", "GLOCK 19", "UZI", "Military technology guns"]
 ARMOR_ITEMS  = ["Leather jacket", "Steel-toed boots", "Gas mask", "Kevlar vest", "Riot helmet", "Thick gloves"]
+GUN_ITEMS    = ["RPG", "AK-47", "GLOCK 19", "UZI", "Military technology guns", "Flare gun"]
 
 PERK_INFO = {
     "Scavenger":    "50% chance to find a second item when you scavenge",

@@ -262,6 +262,17 @@
   .horde-count.near { color: #a03418; animation: pulse 1.2s ease-in-out infinite; }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
 
+
+  .scene { position: relative; height: 230px; border: 1px solid var(--border2); overflow: hidden; background: #0a0907; }
+  .scene svg { width: 100%; height: 100%; display: block; }
+  .scene .eyes { animation: pulse 1.6s ease-in-out infinite; }
+  .scene.insane .wanderer { animation: shake 0.35s steps(2) infinite; }
+  .scene.insane::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: rgba(60,20,80,0.18); animation: pulse 0.9s steps(2) infinite; }
+  @keyframes shake { 0% { transform: translate(0,0); } 50% { transform: translate(1.5px,-1px); } 100% { transform: translate(-1.5px,1px); } }
+  .status-line { margin-top: 8px; font-size: 0.72rem; letter-spacing: 1px; color: var(--grey); text-align: center; }
+  .status-line .bad { color: #a03418; }
+  .route { width: 100%; height: auto; display: block; margin-top: 6px; }
+
   /* red edges on the screen when you are about to die */
   #bg-tint.danger { box-shadow: inset 0 0 140px rgba(140,20,0,0.55); animation: pulse 2.4s ease-in-out infinite; }
 
@@ -368,37 +379,154 @@
   <div class="grid">
     <div class="lc">
       <div class="panel">
-        <div class="ph"><span class="ph-t">Character</span></div>
+        <div class="ph"><span class="ph-t">Character</span><span class="ph-x">Stage {{ level }} of 10</span></div>
         <div class="pb">
-          <div class="paper-doll" style="position: relative; width: 100%; height: 260px; background: #0a0907; border: 1px solid var(--border2); border-radius: 4px; overflow: hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.8);">
-            
-            <!-- 1. Βάση -->
-            <img src="{{ url_for('static', filename='base.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
-            
-            <!-- 2. Επιζώντες -->
-            {% if state.survivors > 0 %}
-                <img src="{{ url_for('static', filename='recruit.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:-35px; width:100%; height:100%; object-fit:contain; transform: scale(0.9);">
-                {% if state.survivors > 1 %}
-                    <img src="{{ url_for('static', filename='recruit.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:35px; width:100%; height:100%; object-fit:contain; transform: scale(0.8);">
+          {# ═══ What the wanderer is carrying ═══ #}
+          {% set weapons   = state.inventory | select('in', WEAPON_ITEMS) | list %}
+          {% set guns      = state.inventory | select('in', GUN_ITEMS) | list %}
+          {% set armor     = state.inventory | select('in', ARMOR_ITEMS) | list %}
+          {% set followers = [[state.survivors - 1, 0] | max, 4] | min %}
+          {% set horde_near = state.active_event_id == 16 or horde_in <= 1 %}
+
+          <div class="scene {% if state.sanity <= 30 %}insane{% endif %}">
+            <svg viewBox="0 0 600 220" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="csky" x1="0" y1="0" x2="0" y2="1">
+                  {% if state.weather == 'Heatwave' %}
+                    <stop offset="0" stop-color="#1a0602"/><stop offset="0.6" stop-color="#5a1c04"/><stop offset="1" stop-color="#2a0c02"/>
+                  {% elif horde_near %}
+                    <stop offset="0" stop-color="#140303"/><stop offset="0.6" stop-color="#3a0a06"/><stop offset="1" stop-color="#1c0504"/>
+                  {% else %}
+                    <stop offset="0" stop-color="#050302"/><stop offset="0.6" stop-color="#381a04"/><stop offset="1" stop-color="#200e02"/>
+                  {% endif %}
+                </linearGradient>
+                <g id="person">
+                  <circle cx="0" cy="-78" r="10"/>
+                  <rect x="-9" y="-68" width="18" height="38" rx="3"/>
+                  <line x1="-9" y1="-62" x2="-20" y2="-38" stroke-width="5" stroke-linecap="round"/>
+                  <line x1="9"  y1="-62" x2="20"  y2="-38" stroke-width="5" stroke-linecap="round"/>
+                  <line x1="-5" y1="-30" x2="-9"  y2="0"   stroke-width="6" stroke-linecap="round"/>
+                  <line x1="5"  y1="-30" x2="9"   y2="0"   stroke-width="6" stroke-linecap="round"/>
+                </g>
+              </defs>
+
+              <!-- sky, moon, ground -->
+              <rect width="600" height="220" fill="url(#csky)"/>
+              <circle cx="500" cy="45" r="26" fill="{% if horde_near %}#c02020{% else %}#e0b848{% endif %}" opacity="0.45"/>
+              <circle cx="500" cy="45" r="16" fill="{% if horde_near %}#e03030{% else %}#f8d868{% endif %}" opacity="0.6"/>
+              <rect x="20"  y="120" width="60" height="70" fill="#1e1002" opacity="0.9"/>
+              <rect x="80"  y="140" width="40" height="50" fill="#1a0e02" opacity="0.9"/>
+              <rect x="470" y="125" width="70" height="65" fill="#1e1002" opacity="0.9"/>
+              <rect y="186" width="600" height="34" fill="#100802"/>
+
+              <!-- horde eyes in the dark -->
+              {% if horde_near %}
+                <g class="eyes">
+                  {% for x, y in [(40,150),(95,165),(150,145),(205,170),(395,168),(450,150),(505,166),(560,148),(250,160),(345,158)] %}
+                    {% if state.active_event_id == 16 or loop.index <= 4 %}
+                      <circle cx="{{ x }}" cy="{{ y }}" r="1.8" fill="#ff3020"/><circle cx="{{ x + 6 }}" cy="{{ y }}" r="1.8" fill="#ff3020"/>
+                    {% endif %}
+                  {% endfor %}
+                </g>
+              {% endif %}
+
+              <!-- survivors following you -->
+              {% for i in range(followers) %}
+                {% set fx = [228, 372, 175, 425][i] %}
+                <use href="#person" transform="translate({{ fx }},188) scale(0.82)" fill="#170c04" stroke="#170c04"/>
+              {% endfor %}
+
+              <!-- the dog -->
+              {% if 'Dog' in state.inventory %}
+                <g fill="#0c0806" stroke="#0c0806">
+                  <ellipse cx="352" cy="172" rx="15" ry="7"/>
+                  <circle cx="370" cy="164" r="6"/><polygon points="366,158 369,151 372,158"/>
+                  <line x1="342" y1="176" x2="341" y2="188" stroke-width="3"/><line x1="349" y1="177" x2="349" y2="188" stroke-width="3"/>
+                  <line x1="358" y1="177" x2="358" y2="188" stroke-width="3"/><line x1="364" y1="176" x2="365" y2="188" stroke-width="3"/>
+                  <line x1="337" y1="170" x2="329" y2="162" stroke-width="3" stroke-linecap="round"/>
+                </g>
+              {% endif %}
+
+              <!-- the wanderer -->
+              <g class="wanderer" fill="#070403" stroke="#070403">
+                {% if 'Flashlight' in state.inventory %}
+                  <polygon points="279,148 180,200 250,210" fill="#f8e090" stroke="none" opacity="0.10"/>
                 {% endif %}
-            {% endif %}
+                {% if 'Backpack' in state.inventory or state.inventory | length >= 8 %}
+                  <rect x="280" y="110" width="12" height="32" rx="3"/>
+                {% endif %}
+                <circle cx="300" cy="95" r="13"/>
+                <rect x="288" y="108" width="24" height="48" rx="4"/>
+                <line x1="289" y1="116" x2="279" y2="148" stroke-width="7" stroke-linecap="round"/>
+                <line x1="311" y1="116" x2="324" y2="146" stroke-width="7" stroke-linecap="round"/>
+                <line x1="294" y1="156" x2="289" y2="190" stroke-width="8" stroke-linecap="round"/>
+                <line x1="306" y1="156" x2="311" y2="190" stroke-width="8" stroke-linecap="round"/>
 
-            <!-- 3. Εξοπλισμός (Το δυναμικό loop) -->
-            {% for item in state.inventory %}
-                {% set filename = item | lower | replace(' ', '_') ~ '.png' %}
-                <img src="{{ url_for('static', filename=filename) }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
-            {% endfor %}
+                {% if 'Riot helmet' in armor %}
+                  <path d="M285 94 Q300 72 315 94 Z" stroke="#3a2a14" stroke-width="1.5"/>
+                {% endif %}
+                {% if 'Gas mask' in armor %}
+                  <circle cx="306" cy="100" r="5" stroke="#3a2a14" stroke-width="1.5"/>
+                {% endif %}
+                {% if 'Kevlar vest' in armor or 'Leather jacket' in armor %}
+                  <rect x="286" y="110" width="28" height="34" rx="3" fill="none" stroke="#3a2a14" stroke-width="2"/>
+                {% endif %}
 
-            <!-- 4. Damage & Madness -->
-            {% if state.health <= 40 %}
-                <img src="{{ url_for('static', filename='blood_splatter.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
-            {% endif %}
-            
-            {% if state.sanity <= 30 %}
-                <img src="{{ url_for('static', filename='crazy_eyes.png') }}" onerror="this.style.display='none'" style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
-            {% endif %}
+                {% if guns %}
+                  <rect x="314" y="140" width="40" height="6" rx="1" stroke="#2c2016" stroke-width="1"/>
+                  <rect x="316" y="146" width="7" height="10" rx="1"/>
+                {% elif weapons %}
+                  <line x1="324" y1="148" x2="348" y2="104" stroke="#2c2016" stroke-width="4" stroke-linecap="round"/>
+                {% endif %}
 
+                {% if state.health <= 40 %}
+                  <ellipse cx="296" cy="124" rx="4" ry="6" fill="#7a1408" stroke="none"/>
+                  <ellipse cx="305" cy="138" rx="3" ry="4" fill="#7a1408" stroke="none"/>
+                  <ellipse cx="300" cy="192" rx="14" ry="2.5" fill="#5a0e06" stroke="none"/>
+                {% endif %}
+              </g>
+
+              <!-- weather -->
+              {% if state.weather == 'Fog' %}
+                <ellipse cx="150" cy="182" rx="260" ry="22" fill="#867f74" opacity="0.18"/>
+                <ellipse cx="460" cy="176" rx="240" ry="20" fill="#867f74" opacity="0.15"/>
+              {% elif state.weather == 'Rain' %}
+                <g stroke="#867f74" stroke-width="1" opacity="0.35">
+                  {% for x in range(10, 600, 28) %}<line x1="{{ x }}" y1="{{ (x * 7) % 120 }}" x2="{{ x - 6 }}" y2="{{ (x * 7) % 120 + 22 }}"/>{% endfor %}
+                </g>
+              {% endif %}
+            </svg>
           </div>
+
+          {# ═══ Status line ═══ #}
+          <div class="status-line">
+            {% if health > 70 %}Healthy{% elif health > 40 %}Hurt{% elif health > 20 %}Wounded{% else %}<span class="bad">Bleeding out</span>{% endif %}
+            &middot; {% if weapons %}Armed: {{ weapons[-1] }}{% else %}Unarmed{% endif %}
+            {% if armor %}&middot; Armored{% endif %}
+            &middot; {% if followers == 0 %}Alone{% else %}{{ state.survivors - 1 }} {{ 'follower' if state.survivors - 1 == 1 else 'followers' }}{% endif %}
+            {% if 'Dog' in state.inventory %}&middot; Dog{% endif %}
+            {% if state.sanity <= 30 %}&middot; <span class="bad">Mind slipping</span>{% endif %}
+          </div>
+
+          {# ═══ Route to the Safe Zone ═══ #}
+          {% set route_x = 30 + ([pts, SAFE_ZONE_DISTANCE] | min) * 520 / SAFE_ZONE_DISTANCE %}
+          <svg class="route" viewBox="0 0 600 46" xmlns="http://www.w3.org/2000/svg">
+            <line x1="30" y1="26" x2="550" y2="26" stroke="#38342c" stroke-width="2" stroke-dasharray="6,5"/>
+            <line x1="30" y1="26" x2="{{ route_x }}" y2="26" stroke="#867f74" stroke-width="2"/>
+            {% for i in range(10) %}
+              {% set sx = 30 + i * 52 %}
+              <circle cx="{{ sx }}" cy="26" r="4" fill="{% if i < level %}#867f74{% else %}#161412{% endif %}" stroke="#524e47"/>
+              <text x="{{ sx }}" y="44" text-anchor="middle" font-size="8" fill="#524e47" font-family="Inter, sans-serif">{{ i + 1 }}</text>
+            {% endfor %}
+            <!-- safe zone gate -->
+            <g fill="#2a4a18">
+              <rect x="560" y="10" width="3" height="22"/><rect x="583" y="10" width="3" height="22"/>
+              <rect x="560" y="10" width="26" height="3"/><rect x="560" y="18" width="26" height="2"/>
+            </g>
+            <text x="573" y="44" text-anchor="middle" font-size="7" fill="#708858" font-family="Inter, sans-serif" letter-spacing="1">SAFE</text>
+            <!-- you are here -->
+            <polygon points="{{ route_x - 5 }},12 {{ route_x + 5 }},12 {{ route_x }},20" fill="#e0b848"/>
+          </svg>
         </div>
       </div>
 
